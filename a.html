@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Brand Name Combiner</title>
+<style>
+  :root{
+    --bg:#0f1221; --panel:#171a2b; --ink:#e8eaf6; --muted:#9aa2c7;
+    --accent:#7c8cff; --accent-2:#4de0c9; --ring:rgba(124,140,255,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    color:var(--ink); background:radial-gradient(1100px 600px at 80% -10%, #1b1f3a 0%, #0f1221 60%) fixed var(--bg);
+  }
+  .wrap{max-width:1100px;margin:40px auto;padding:24px}
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    backdrop-filter: blur(6px);
+  }
+  .header{padding:26px 26px 6px}
+  h1{margin:0;font-size:26px;letter-spacing:.3px}
+  .subtitle{margin-top:8px;color:var(--muted)}
+  .grid{display:grid;gap:16px}
+  @media (min-width:900px){ .grid.cols-3{grid-template-columns:2.2fr 1.5fr 1fr} }
+  @media (max-width:899px){ .grid.cols-3{grid-template-columns:1fr} }
+  .panel{padding:18px 20px;border-top:1px solid rgba(255,255,255,.06)}
+  label{font-size:13px;color:var(--muted)}
+  input[type="text"], input[type="number"], select, textarea{
+    width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:#0f1226; color:var(--ink); outline:none; transition: box-shadow .15s ease, border-color .15s ease;
+  }
+  textarea{min-height:110px; resize:vertical}
+  input:focus, select:focus, textarea:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--ring) }
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 10px; border-radius:999px;
+    background:#10142a; border:1px dashed rgba(255,255,255,.14); color:var(--muted); font-size:13px;
+  }
+  .chip input{width:140px}
+  .btn{
+    cursor:pointer; user-select:none; border:0; border-radius:12px; padding:12px 14px; font-weight:600;
+    background:linear-gradient(135deg,var(--accent), #5ae1ff 70%); color:#0c1020; box-shadow:0 10px 22px rgba(92,140,255,.35);
+    transition: transform .08s ease, filter .2s ease;
+  }
+  .btn:hover{filter:saturate(1.15) brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{
+    background:#11152b; color:var(--ink); border:1px solid rgba(255,255,255,.12); box-shadow:none;
+  }
+  .btn.ghost{
+    background:transparent; color:var(--ink); border:1px dashed rgba(255,255,255,.18); box-shadow:none;
+  }
+  .btn.small{padding:8px 10px; border-radius:10px; font-size:13px}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px}
+  .count{font-size:13px; color:var(--muted)}
+  .results{
+    display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap:12px; margin-top:14px;
+  }
+  .tile{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:#10142a; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 12px;
+  }
+  .name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; letter-spacing:.2px}
+  .copy{
+    border:0; border-radius:8px; padding:6px 8px; font-weight:600; cursor:pointer;
+    background:#0e1430; color:var(--ink); border:1px solid rgba(255,255,255,.14);
+  }
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .footer{padding:16px 20px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+  .toast{
+    position:fixed; right:16px; bottom:16px; background:#0d132b; color:var(--ink);
+    border:1px solid rgba(255,255,255,.12); padding:10px 14px; border-radius:10px; opacity:0; transform:translateY(10px);
+    transition: all .25s ease; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateY(0)}
+  .switch{display:inline-flex; gap:8px; align-items:center; font-size:13px; color:var(--muted)}
+  .switch input{width:auto}
+  .divider{height:1px;background:rgba(255,255,255,.06);margin:12px 0}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <h1>Brand Name Combiner</h1>
+        <div class="subtitle">Type a base word (e.g., <b>iqtest</b>) and instantly generate names like <i>goiqtest</i>, <i>myiqtest</i>, <i>bestiqtest</i>, <i>customiqtest</i>, and more — then copy with one click.</div>
+      </div>
+
+      <div class="panel">
+        <div class="grid cols-3">
+          <!-- Column 1: Input -->
+          <div>
+            <label for="base">Base word</label>
+            <input id="base" type="text" placeholder="e.g. iqtest" value="iqtest" />
+            <div class="hint">Avoid spaces. Use letters/numbers only; separators/case rules apply below.</div>
+
+            <div class="divider"></div>
+
+            <label>Generation patterns</label>
+            <div class="row" style="margin-top:6px">
+              <span class="switch"><input type="checkbox" id="patPrefix" checked /> prefix + base</span>
+              <span class="switch"><input type="checkbox" id="patSuffix" checked /> base + suffix</span>
+              <span class="switch"><input type="checkbox" id="patBoth" /> prefix + base + suffix</span>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <span class="switch"><input type="checkbox" id="dedupe" checked /> dedupe</span>
+              <span class="switch"><input type="checkbox" id="alphabetize" /> A→Z</span>
+              <span class="switch"><input type="checkbox" id="noDigits" /> drop items with digits</span>
+            </div>
+          </div>
+
+          <!-- Column 2: Options -->
+          <div>
+            <label for="casing">Casing</label>
+            <select id="casing">
+              <option value="raw">Keep as typed</option>
+              <option value="camel">camelCase</option>
+              <option value="pascal">PascalCase</option>
+              <option value="kebab">kebab-case</option>
+              <option value="snake">snake_case</option>
+            </select>
+
+            <div class="row" style="margin-top:10px">
+              <div style="flex:1">
+                <label for="sep">Separator (when needed)</label>
+                <input id="sep" type="text" placeholder="leave blank for none" />
+              </div>
+              <div style="flex:1">
+                <label for="tld">Add TLD</label>
+                <select id="tld">
+                  <option value="">(none)</option>
+                  <option value=".com">.com</option>
+                  <option value=".io">.io</option>
+                  <option value=".ai">.ai</option>
+                  <option value=".app">.app</option>
+                  <option value=".site">.site</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div style="flex:1">
+                <label for="minLen">Min length</label>
+                <input id="minLen" type="number" min="1" placeholder="e.g. 5" />
+              </div>
+              <div style="flex:1">
+                <label for="maxLen">Max length</label>
+                <input id="maxLen" type="number" min="1" placeholder="e.g. 18" />
+              </div>
+              <div style="flex:1">
+                <label for="limit">Limit results</label>
+                <input id="limit" type="number" min="1" placeholder="e.g. 200" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Affixes -->
+          <div>
+            <label>Prefixes (comma-separated)</label>
+            <textarea id="prefixes">go,my,best,custom,get,try,the,pro,super,ultra,hyper,neo,smart,easy,quick,real,true,prime,max,plus,top,all,only,first,just,meta,core,deep,bright,mega,mini,one,zero,new,next</textarea>
+
+            <label style="margin-top:8px;display:block">Suffixes (comma-separated)</label>
+            <textarea id="suffixes">hub,lab,pro,app,kit,box,spot,base,hq,zone,cloud,verse,works,center,engine,pilot,forge,space,plus,max,now,go,core,stack,flow,room,boost,gen,aid,wise</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="toolbar">
+          <button class="btn" id="generate">Generate</button>
+          <button class="btn secondary" id="shuffle">Shuffle order</button>
+          <button class="btn ghost" id="copyAll">Copy all</button>
+          <button class="btn ghost" id="download">Download .txt</button>
+        </div>
+        <div class="count"><span id="count">0</span> names</div>
+      </div>
+
+      <div class="panel">
+        <div class="results" id="results"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Copied!</div>
+
+<script>
+(function(){
+  const el = id => document.getElementById(id);
+  const base = el('base');
+  const casing = el('casing');
+  const sep = el('sep');
+  const tld = el('tld');
+  const minLen = el('minLen');
+  const maxLen = el('maxLen');
+  const limit = el('limit');
+  const prefixesArea = el('prefixes');
+  const suffixesArea = el('suffixes');
+  const patPrefix = el('patPrefix');
+  const patSuffix = el('patSuffix');
+  const patBoth = el('patBoth');
+  const dedupe = el('dedupe');
+  const alphabetize = el('alphabetize');
+  const noDigits = el('noDigits');
+  const results = el('results');
+  const count = el('count');
+  const toast = el('toast');
+
+  const showToast = (msg="Copied!")=>{
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1200);
+  };
+
+  const copy = async (text)=>{
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast('Copied to clipboard');
+    }catch{
+      showToast('Copy failed');
+    }
+  };
+
+  const toWords = (str)=> str.split(/[\s\-_]+/).filter(Boolean);
+
+  const casers = {
+    raw: parts => parts.join(''),
+    camel: parts => parts.map((p,i)=> i? (p[0]||'').toUpperCase()+p.slice(1): p.toLowerCase()).join(''),
+    pascal: parts => parts.map(p=> (p[0]||'').toUpperCase()+p.slice(1)).join(''),
+    kebab: parts => parts.join('-').toLowerCase(),
+    snake: parts => parts.join('_').toLowerCase(),
+  };
+
+  const sanitize = s => (s||'').replace(/[^a-z0-9\-_\s]/gi,'').trim();
+
+  function parseList(text){
+    return text.split(/[,\n]/).map(x=>sanitize(x.toLowerCase())).filter(Boolean);
+  }
+
+  function buildParts(prefix, baseWord, suffix){
+    const parts = [];
+    const s = (sep.value || '').trim();
+    if(prefix) parts.push(prefix);
+    parts.push(baseWord);
+    if(suffix) parts.push(suffix);
+    if(s && ['kebab','snake'].includes(casing.value)===false){
+      // if user wants a separator, insert it between parts before casing
+      // We'll emulate by interleaving with sep then casing raw (so camel/pascal ignore sep)
+      return parts.join(s).split(s);
+    }
+    return parts;
+  }
+
+  function applyCaseJoin(parts){
+    const fn = casers[casing.value] || casers.raw;
+    const out = fn(parts.map(p => p));
+    return out;
+  }
+
+  function affix(baseWord, prefs, suffs){
+    const out = [];
+
+    if(patPrefix.checked){
+      prefs.forEach(p => out.push(applyCaseJoin(buildParts(p, baseWord))));
+    }
+    if(patSuffix.checked){
+      suffs.forEach(s => out.push(applyCaseJoin(buildParts(null, baseWord, s))));
+    }
+    if(patBoth.checked){
+      prefs.forEach(p => suffs.forEach(s => out.push(applyCaseJoin(buildParts(p, baseWord, s)))));
+    }
+    return out;
+  }
+
+  function addTld(name){
+    const ext = tld.value;
+    if(!ext) return name;
+    // ensure there is no existing dot unless it's part of base
+    return name.replace(/\.$/,'') + ext;
+  }
+
+  function filterLen(name){
+    const min = parseInt(minLen.value,10);
+    const max = parseInt(maxLen.value,10);
+    const core = name.replace(/\./g,'');
+    if(!isNaN(min) && core.length < min) return false;
+    if(!isNaN(max) && core.length > max) return false;
+    return true;
+  }
+
+  function render(list){
+    results.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    list.forEach(n=>{
+      const div = document.createElement('div');
+      div.className = 'tile';
+      const span = document.createElement('div');
+      span.className = 'name';
+      span.textContent = n;
+      const btn = document.createElement('button');
+      btn.className = 'copy';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', ()=> copy(n));
+      div.appendChild(span);
+      div.appendChild(btn);
+      frag.appendChild(div);
+    });
+    results.appendChild(frag);
+    count.textContent = list.length;
+  }
+
+  function generate(){
+    const bRaw = sanitize(base.value);
+    if(!bRaw){ render([]); return; }
+
+    const bWords = toWords(bRaw.toLowerCase());
+    // lock base to a single token by default (but allow hyphens/underscores through casing controls)
+    const baseToken = bWords.join('');
+
+    const prefs = parseList(prefixesArea.value);
+    const suffs = parseList(suffixesArea.value);
+
+    let names = affix(baseToken, prefs, suffs);
+
+    // allow plain base (no prefix/suffix) if nothing selected
+    if(!patPrefix.checked && !patSuffix.checked && !patBoth.checked){
+      names = [applyCaseJoin([baseToken])];
+    }
+
+    if(noDigits.checked){
+      names = names.filter(n=>!/[\d]/.test(n));
+    }
+
+    names = names.map(addTld).filter(filterLen);
+
+    if(dedupe.checked){
+      names = [...new Set(names)];
+    }
+
+    if(alphabetize.checked){
+      names.sort((a,b)=> a.localeCompare(b));
+    }
+
+    const lim = parseInt(limit.value,10);
+    if(!isNaN(lim) && lim>0){
+      names = names.slice(0, lim);
+    }
+
+    render(names);
+    return names;
+  }
+
+  // Events
+  ['input','change'].forEach(evt=>{
+    [base, casing, sep, tld, minLen, maxLen, limit,
+     prefixesArea, suffixesArea, patPrefix, patSuffix, patBoth, dedupe, alphabetize, noDigits]
+     .forEach(el=> el.addEventListener(evt, generate));
+  });
+  document.getElementById('generate').addEventListener('click', generate);
+
+  document.getElementById('shuffle').addEventListener('click', ()=>{
+    const tiles = Array.from(results.children);
+    const arr = tiles.map(x=>x);
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    results.innerHTML = '';
+    arr.forEach(n=>results.appendChild(n));
+  });
+
+  document.getElementById('copyAll').addEventListener('click', ()=>{
+    const all = Array.from(results.querySelectorAll('.name')).map(n=>n.textContent).join('\n');
+    if(all.trim()){ copy(all); }
+  });
+
+  document.getElementById('download').addEventListener('click', ()=>{
+    const all = Array.from(results.querySelectorAll('.name')).map(n=>n.textContent).join('\n');
+    const blob = new Blob([all||''], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (sanitize(base.value)||'names') + '.txt';
+    document.body.appendChild(a); a.click();
+    requestAnimationFrame(()=>{ URL.revokeObjectURL(url); a.remove(); });
+  });
+
+  // Initial render
+  generate();
+})();
+</script>
+</body>
+</html>
