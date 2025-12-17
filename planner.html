@@ -1,0 +1,1133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Credit Planner</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-sec: #6b7280;
+      --border: #e5e7eb;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --radius: 12px;
+      --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; outline: none; }
+    
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    /* Layout & Typography */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; display: flex; align-items: center; justify-content: space-between; }
+    
+    .subtitle { color: var(--text-sec); font-size: 14px; font-weight: 400; margin-top: 4px; }
+
+    /* Cards & Panels */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: all 0.2s;
+    }
+
+    /* Inputs & Forms */
+    .form-group { margin-bottom: 0; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-main);
+      background: #f9fafb;
+      transition: all 0.15s;
+    }
+    input:focus, select:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all 0.15s; gap: 6px;
+    }
+    .btn-primary { background: var(--text-main); color: #fff; }
+    .btn-primary:hover { background: #000; }
+    
+    .btn-sec { background: #fff; border-color: var(--border); color: var(--text-main); }
+    .btn-sec:hover { background: #f9fafb; border-color: #d1d5db; }
+    
+    .btn-ghost { background: transparent; color: var(--text-sec); padding: 4px 8px; }
+    .btn-ghost:hover { color: var(--text-main); background: #f3f4f6; }
+    
+    .btn-danger-ghost { background: transparent; color: var(--text-sec); padding: 6px; }
+    .btn-danger-ghost:hover { color: var(--danger); background: #fef2f2; }
+
+    /* Grid Layouts */
+    .grid-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Data Table */
+    .data-table-wrapper {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f9fafb; text-align: left; padding: 12px 16px;
+      font-size: 12px; color: var(--text-sec); font-weight: 600;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 14px; color: var(--text-main); vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    
+    .table-input { 
+      border: 1px solid transparent; background: transparent; padding: 6px 8px; margin: -6px -8px; width: 100%; 
+    }
+    .table-input:hover, .table-input:focus {
+      background: #fff; border-color: var(--border);
+    }
+    
+    /* Stats & Pills */
+    .stat-box {
+      background: #f8fafc; border-radius: 8px; padding: 16px;
+      border: 1px solid var(--border); text-align: center;
+    }
+    .stat-label { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 700; color: var(--primary); }
+    
+    .pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+    .pill.blue { background: #eff6ff; color: #2563eb; }
+    .pill.green { background: #ecfdf5; color: #059669; }
+    .pill.red { background: #fef2f2; color: #dc2626; }
+    .pill.warning { background: #fffbeb; color: #b45309; }
+    .pill.purple { background: #f3e8ff; color: #7c3aed; }
+
+    /* Timeline Styling */
+    .timeline-item {
+      display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px dashed var(--border);
+      align-items: flex-start;
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-item.done { opacity: 0.42; }
+    .timeline-item.done .t-amount { text-decoration: line-through; }
+    .done-toggle { cursor: pointer; user-select: none; }
+    .done-toggle:hover { opacity: 0.9; }
+    
+    .t-date {
+      width: 70px; flex-shrink: 0; text-align: center;
+      background: #f3f4f6; border-radius: 6px; padding: 8px 4px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .t-day { font-size: 18px; font-weight: 700; line-height: 1; color: var(--text-main); }
+    .t-month { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+    
+    .t-content { flex: 1; }
+    .t-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .t-card-name { font-weight: 600; font-size: 14px; }
+    .t-amount { font-weight: 700; font-size: 15px; color: var(--text-main); font-family: monospace; }
+    
+    .t-meta { display: flex; gap: 10px; font-size: 12px; color: var(--text-sec); align-items: center; }
+    .icon { width: 14px; height: 14px; fill: currentColor; opacity: 0.7; }
+
+    /* Utility */
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .text-right { text-align: right; }
+    .w-full { width: 100%; }
+    .mt-4 { margin-top: 16px; }
+    .text-sm { font-size: 12px; }
+    .muted { color: var(--text-sec); }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1>💳 Smart Planner <span style="font-size:12px; background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:99px;">Pro</span></h1>
+        <div class="subtitle">信用卡资金占用最大化计算器（自动规划）</div>
+      </div>
+      <div id="globalStat" style="text-align:right;">
+        <!-- JS Populated -->
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 1. 全局配置 -->
+  <div class="card">
+    <h2>⚙️ 全局设置</h2>
+    <div class="grid-controls">
+      <div>
+        <label>规划月份</label>
+        <input id="planMonth" type="month" />
+      </div>
+      <div>
+        <label>单笔刷卡范围 (元)</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="minChunk" type="number" value="10000" min="10000" step="1000" placeholder="Min" />
+          <span class="muted">-</span>
+          <input id="maxChunk" type="number" value="50000" min="10000" step="1000" placeholder="Max" />
+        </div>
+      </div>
+      <div>
+        <label>商户数量（每月）</label>
+        <input id="merchantCount" type="number" value="5" min="1" step="1" />
+      </div>
+      <div>
+        <label>单商户月收款上限 (元)</label>
+        <input id="merchantCap" type="number" value="50000" min="10000" step="1000" />
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="w-full">
+          <label>计划锁定</label>
+          <div class="muted" style="font-size:12px;">刷新页面不会变；需要换一版时点“重新生成”。</div>
+        </div>
+        <button id="regenPlan" class="btn btn-sec">重新生成</button>
+        <button id="resetLocal" class="btn btn-ghost">清除本地</button>
+      </div>
+      <div>
+        <label>计算模式</label>
+        <select id="mode">
+          <option value="steady" selected>稳定循环 (最大化占用)</option>
+          <option value="oneoff">单次执行 (新卡/首月)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 卡片管理 -->
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding: 20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="margin:0;">💳 卡片管理</h2>
+        <div class="subtitle">实时修改参数，结果即刻刷新</div>
+      </div>
+      <button id="addCard" class="btn btn-sec">+ 添加新卡</button>
+    </div>
+    
+    <div style="overflow-x: auto;">
+      <table id="cardsTable">
+        <thead>
+          <tr>
+            <th style="width:200px;">卡片名称</th>
+            <th style="width:140px;">额度 (元)</th>
+            <th style="width:100px;">账单日</th>
+            <th style="width:100px;">还款日</th>
+            <th style="width:140px;">本月目标 (元)</th>
+            <th style="width:100px; text-align:right;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="cardsTbody">
+          <!-- JS Rows -->
+        </tbody>
+      </table>
+    </div>
+    <div class="muted" style="padding:12px 24px; font-size:12px; background:#f9fafb; border-top:1px solid var(--border);">
+      提示：若还款日小于账单日，系统会自动识别为次月还款。
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- 3. 时间轴 -->
+    <div class="card">
+      <h2>📅 智能执行时间轴 <span class="pill blue" id="eventCount">0 笔</span> <span class="pill blue" id="remainSum">剩余 ¥0</span></h2>
+      <div id="timeline" style="max-height: 600px; overflow-y:auto; padding-right:4px;">
+        <!-- Timeline JS -->
+      </div>
+    </div>
+
+    <!-- 4. 详细分析 -->
+    <div class="card">
+      <h2>📊 资金占用分析</h2>
+      <div id="summary" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Summary JS -->
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---------- Utility Functions ----------
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+  // Show 0 decimal places (Integer only)
+  const fmt = (n) => (Number(n) || 0).toLocaleString("zh-CN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const pad2 = (x) => String(x).padStart(2, "0");
+
+  // ---------- Local persistence + Seeded RNG ----------
+  const STORAGE_KEY = "smartPlanner_v1";
+
+  function mulberry32(seed) {
+    let t = seed >>> 0;
+    return function() {
+      t += 0x6D2B79F5;
+      let x = t;
+      x = Math.imul(x ^ (x >>> 15), x | 1);
+      x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function newSeed() {
+    // Prefer crypto if available; fallback to time-based
+    try {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const u = new Uint32Array(1);
+        window.crypto.getRandomValues(u);
+        return u[0] >>> 0;
+      }
+    } catch (_) {}
+    return (Date.now() ^ (Math.random() * 0xFFFFFFFF)) >>> 0;
+  }
+
+  // FNV-1a 32-bit hash + stable stringify (用于“同输入同计划”)
+  function fnv1a32(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return h >>> 0;
+  }
+  function stableStringify(obj) {
+    if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
+    if (Array.isArray(obj)) return "[" + obj.map(stableStringify).join(",") + "]";
+    const keys = Object.keys(obj).sort();
+    return "{" + keys.map(k => JSON.stringify(k) + ":" + stableStringify(obj[k])).join(",") + "}";
+  }
+
+  function loadPersisted() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function savePersisted(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (_) {}
+  }
+
+  function clearPersisted() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+  }
+
+  // Debounce for smooth inputs
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  // Date helpers
+  function daysInMonth(y, m1) { return new Date(y, m1, 0).getDate(); }
+  function makeDate(y, m1, d) { return new Date(y, m1 - 1, clamp(d, 1, daysInMonth(y, m1))); }
+  function addDays(dt, n) { const x = new Date(dt); x.setDate(x.getDate() + n); return x; }
+  function dateISO(dt) { return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`; }
+  function getDayName(dt) { const days = ['周日','周一','周二','周三','周四','周五','周六']; return days[dt.getDay()]; }
+
+  // ---------- Core Logic (Business Logic) ----------
+
+  const HARD_MIN_SWIPE = 10000; // 单笔刷卡硬下限：1万元
+  const sumArr = (arr) => (arr || []).reduce((a, b) => a + (Number(b) || 0), 0);
+
+  /**
+   * 生成“看起来更像真实消费”的整数拆分：
+   * - 总和严格等于 amount（整数）
+   * - 每笔必须在 [minChunk, maxChunk] 内（硬约束：不得低于 1 万）
+   * - 金额要“不规则”：尽量避免整百/整千（如 19400 / 29000 / 50000）
+   * - 偏好接近 maxChunk（例如 5 万），以减少笔数与日期
+   * - 带有兜底逻辑，避免极端参数导致页面异常
+   */
+  function splitIntoChunks(amount, minChunk, maxChunk, rng) {
+    amount = Math.round(Number(amount) || 0);
+    minChunk = Math.max(HARD_MIN_SWIPE, Math.round(Number(minChunk)));
+    maxChunk = Math.max(minChunk, Math.round(Number(maxChunk)));
+    rng = rng || Math.random;
+
+    if (amount <= 0) return [];
+    if (amount < minChunk) return []; // 不允许生成低于单笔下限的刷卡
+
+    try {
+      const isTooRound = (x) => (x % 100 === 0) || (x % 1000 === 0);
+
+      // 可行性：存在 n 使得 n*minChunk <= amount <= n*maxChunk
+      const minN = Math.ceil(amount / maxChunk);
+      const maxN = Math.floor(amount / minChunk);
+      if (minN > maxN) return [];
+
+      // 默认最少笔数；若单笔金额过整且可拆 2 笔，则拆 2 笔让它更像真实消费
+      let n = minN;
+      if (n === 1 && isTooRound(amount) && maxN >= 2 && amount >= 2 * minChunk) n = 2;
+
+      // 先生成 n 笔“接近 maxChunk 但不等于 maxChunk”的不规则金额
+      const chunks = [];
+      const jitterMax = Math.min(2333, Math.max(0, maxChunk - minChunk)); // 抖动幅度（可调）
+      for (let i = 0; i < n; i++) {
+        // base 尽量靠近 maxChunk，但避免刚好 maxChunk
+        let base = maxChunk;
+        if (jitterMax > 0) base = maxChunk - (Math.floor(rng() * jitterMax) + 1);
+        base = clamp(base, minChunk, maxChunk);
+        if (isTooRound(base)) base = clamp(base - 37, minChunk, maxChunk);
+        chunks.push(base);
+      }
+
+      // 调整总和到精确 amount（小步调整，避免把数调成整百）
+      let delta = amount - sumArr(chunks);
+      let guard = 0;
+      while (delta !== 0 && guard++ < 20000) {
+        const idx = Math.floor(rng() * n);
+        const cur = chunks[idx];
+
+        if (delta > 0) {
+          const room = maxChunk - cur;
+          if (room <= 0) continue;
+          const step = Math.min(room, delta, 97); // 小步加
+          chunks[idx] = cur + step;
+          delta -= step;
+        } else {
+          const room = cur - minChunk;
+          if (room <= 0) continue;
+          const step = Math.min(room, -delta, 97); // 小步减
+          chunks[idx] = cur - step;
+          delta += step;
+        }
+      }
+      if (delta !== 0) return [];
+
+      // 去整百/整千：两笔之间挪 1~99，不改变总和
+      for (let t = 0; t < 500; t++) {
+        const i = chunks.findIndex(isTooRound);
+        if (i === -1) break;
+        const j = chunks.findIndex((_, k) => k !== i);
+        if (j === -1) break;
+        const k = Math.floor(rng() * 99) + 1;
+
+        if (chunks[i] + k <= maxChunk && chunks[j] - k >= minChunk) {
+          chunks[i] += k; chunks[j] -= k;
+        } else if (chunks[i] - k >= minChunk && chunks[j] + k <= maxChunk) {
+          chunks[i] -= k; chunks[j] += k;
+        }
+      }
+
+      // 校验
+      if (chunks.some(x => x < minChunk || x > maxChunk)) return [];
+      if (sumArr(chunks) !== amount) return [];
+
+      // 打散顺序
+      for (let i = chunks.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
+      }
+      return chunks;
+    } catch (e) {
+      console.error("Split error, using fallback", e);
+      return [];
+    }
+  }
+
+  function monthKey(dt) {
+    return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}`;
+  }
+
+  function isTooRoundAmount(x) {
+    x = Math.round(Number(x) || 0);
+    return (x % 100 === 0) || (x % 1000 === 0);
+  }
+
+  /**
+   * 在“同卡同月”的多笔刷卡之间挪动 1~99，尽量消除整百/整千金额：
+   * - 不改变总额
+   * - 不让任何一笔跌破 minChunk 或超过 maxChunk
+   * - 若该卡该月只有 1 笔刷卡，则无法处理（会保留原值）
+   */
+  function smoothRoundAmounts(events, minChunk, maxChunk, rng) {
+    rng = rng || Math.random;
+    const byGroup = new Map(); // key -> event[]
+    for (const e of events) {
+      if (!['early', 'late', 'extra'].includes(e.type)) continue;
+      const key = `${monthKey(e.date)}|${e.card}`;
+      if (!byGroup.has(key)) byGroup.set(key, []);
+      byGroup.get(key).push(e);
+    }
+
+    for (const [key, evs] of byGroup.entries()) {
+      if (evs.length <= 1) continue;
+
+      // 尝试多轮修复
+      let guard = 0;
+      while (guard++ < 2000) {
+        const idx = evs.findIndex(e => isTooRoundAmount(e.amount));
+        if (idx === -1) break;
+
+        const a = evs[idx];
+        let fixed = false;
+
+        // 随机挑若干个伙伴，尝试 +k/-k
+        for (let tries = 0; tries < 60 && !fixed; tries++) {
+          const j = Math.floor(rng() * evs.length);
+          if (j === idx) continue;
+          const b = evs[j];
+
+          const k = Math.floor(rng() * 99) + 1; // 1..99
+
+          // 方案1：a + k，b - k
+          if (a.amount + k <= maxChunk && b.amount - k >= minChunk) {
+            const na = a.amount + k;
+            const nb = b.amount - k;
+            if (!isTooRoundAmount(na)) {
+              a.amount = na;
+              b.amount = nb;
+              fixed = true;
+              break;
+            }
+          }
+
+          // 方案2：a - k，b + k
+          if (a.amount - k >= minChunk && b.amount + k <= maxChunk) {
+            const na = a.amount - k;
+            const nb = b.amount + k;
+            if (!isTooRoundAmount(na)) {
+              a.amount = na;
+              b.amount = nb;
+              fixed = true;
+              break;
+            }
+          }
+        }
+
+        // 如果这笔实在修不掉（比如伙伴都卡在边界），就跳出避免死循环
+        if (!fixed) break;
+      }
+    }
+
+    return events;
+  }
+
+  /**
+   * 把所有“刷卡事件”分配到商户池（每月每商户 cap），超出则自动扩容并给出提示。
+   */
+  function assignMerchantsToEvents(events, merchantCount, merchantCap) {
+    const pools = new Map(); // monthKey -> { cap, remain: number[] }
+    const overflow = new Map(); // monthKey -> max merchant index used
+
+    function getPool(mk) {
+      if (!pools.has(mk)) {
+        pools.set(mk, { cap: merchantCap, remain: Array(merchantCount).fill(merchantCap) });
+      }
+      return pools.get(mk);
+    }
+
+    for (const e of events) {
+      if (!['early', 'late', 'extra'].includes(e.type)) continue; // 还款不分配商户
+      const mk = monthKey(e.date);
+      const pool = getPool(mk);
+
+      // 硬保护：单笔不能超过商户 cap
+      if (e.amount > merchantCap) {
+        e.merchant = `商户?`;
+        e.note = `${e.note}｜⚠ 单笔超过商户上限`;
+        continue;
+      }
+
+      let idx = pool.remain.findIndex(r => r >= e.amount);
+      if (idx === -1) {
+        // 扩容：新增商户
+        pool.remain.push(merchantCap);
+        idx = pool.remain.length - 1;
+      }
+      pool.remain[idx] -= e.amount;
+      e.merchant = `商户${idx + 1}`;
+      overflow.set(mk, Math.max(overflow.get(mk) || 0, idx + 1));
+    }
+
+    // 生成提示
+    const notes = [];
+    for (const [mk, used] of overflow.entries()) {
+      if (used > merchantCount) {
+        notes.push(`${mk} 需要 ${used} 个商户（超过设置的 ${merchantCount} 个）`);
+      }
+    }
+    return { events, merchantNotes: notes };
+  }
+
+  function computeCardSchedule(card, config) {
+    const { y, m, mode, minChunk, maxChunk, rng } = config;
+    const { name, limitL, stmtDay, dueDay, monthlyS } = card;
+
+    const dim = daysInMonth(y, m);
+    const stmtDate = makeDate(y, m, stmtDay);
+    const chargeStart = addDays(stmtDate, 1);
+    
+    let dueDate = makeDate(y, m, dueDay);
+    if (dueDay < stmtDay) {
+      const ny = (m === 12) ? y + 1 : y;
+      const nm = (m === 12) ? 1 : m + 1;
+      dueDate = makeDate(ny, nm, dueDay);
+    }
+
+    const events = [];
+    const warnings = [];
+    const effectiveMinChunk = Math.max(HARD_MIN_SWIPE, Math.round(Number(minChunk)));
+    const effectiveMaxChunk = Math.max(effectiveMinChunk, Math.round(Number(maxChunk)));
+
+    // 1. Initial State
+    // Steady mode: assume we ended last month full (or at target).
+    // Outstanding cannot exceed Limit.
+    const startOutstanding = (mode === "steady") ? Math.min(monthlyS, limitL) : 0;
+    
+    // We need to track the 'real-time' simulated balance on the card
+    let currentOutstanding = startOutstanding;
+    let totalCharged = 0;
+    const target = monthlyS;
+
+    // --- Phase 1: Charge immediately after statement (using existing free limit) ---
+    // Available = Limit - CurrentOutstanding
+    let avail1 = Math.max(0, limitL - currentOutstanding);
+    let charge1 = Math.min(avail1, target - totalCharged);
+    
+    // 单笔下限：小于下限就不生成刷卡（留到后续/或提示无法排期）
+    if (charge1 > 0 && charge1 < effectiveMinChunk) charge1 = 0;
+
+    if (charge1 > 0) {
+      const chunks = splitIntoChunks(charge1, effectiveMinChunk, effectiveMaxChunk, rng);
+      const actual = sumArr(chunks);
+      if (actual <= 0) {
+        warnings.push(`首刷阶段金额 ¥${fmt(charge1)} 由于“单笔≥¥${fmt(effectiveMinChunk)}”无法拆分，已跳过。`);
+        charge1 = 0;
+      } else if (actual !== charge1) {
+        warnings.push(`首刷阶段原计划 ¥${fmt(charge1)}，可执行 ¥${fmt(actual)}（受单笔约束）。`);
+        charge1 = actual;
+      }
+      chunks.forEach((amt, i) => events.push({
+        date: chargeStart, 
+        type: "early", 
+        amount: amt, 
+        card: name, 
+        note: `账单日后首刷 ${i+1}/${chunks.length}`
+      }));
+      totalCharged += charge1;
+      currentOutstanding += charge1;
+    }
+
+    // --- Phase 2: Repayment Day Operations ---
+    
+    // Step A: Regular Repayment (Bill from last month)
+    // In steady mode, the bill is 'startOutstanding'. In oneoff, it's 0.
+    const billToRepay = startOutstanding;
+    
+    if (billToRepay > 0) {
+      events.push({
+        date: dueDate,
+        type: "repay-std", // Standard repayment
+        amount: billToRepay,
+        card: name,
+        note: "归还上期账单"
+      });
+      currentOutstanding -= billToRepay;
+    }
+
+    // Step B: Charge again using the space freed up by repayment
+    // Available = Limit - CurrentOutstanding (which is now lower)
+    let avail2 = Math.max(0, limitL - currentOutstanding);
+    let charge2 = Math.min(avail2, target - totalCharged);
+
+    if (charge2 > 0 && charge2 < effectiveMinChunk) charge2 = 0;
+
+    if (charge2 > 0) {
+      const chunks = splitIntoChunks(charge2, effectiveMinChunk, effectiveMaxChunk, rng);
+      const actual = sumArr(chunks);
+      if (actual <= 0) {
+        warnings.push(`补刷阶段金额 ¥${fmt(charge2)} 由于“单笔≥¥${fmt(effectiveMinChunk)}”无法拆分，已跳过。`);
+        charge2 = 0;
+      } else if (actual !== charge2) {
+        warnings.push(`补刷阶段原计划 ¥${fmt(charge2)}，可执行 ¥${fmt(actual)}（受单笔约束）。`);
+        charge2 = actual;
+      }
+      chunks.forEach((amt, i) => events.push({
+        date: dueDate,
+        type: "late",
+        amount: amt,
+        card: name,
+        note: `还款日后补刷 ${i+1}/${chunks.length}`
+      }));
+      totalCharged += charge2;
+      currentOutstanding += charge2;
+    }
+
+    // --- Phase 3: Extra Cycling (目标 > 额度 时的循环：还 -> 刷 -> 还 -> 刷 ...) ---
+    let remaining = target - totalCharged;
+    let extraCharged = 0;
+    let cycleGuard = 0;
+
+    // 说明：我们把所有循环操作都安排在 dueDate（便于执行）；若你希望分散到多天，可再升级。
+    while (remaining > 0 && cycleGuard++ < 50) {
+      const available = Math.max(0, limitL - currentOutstanding);
+      if (available > 0) {
+        const charge = Math.min(available, remaining);
+        if (charge < effectiveMinChunk) {
+          warnings.push(`剩余 ¥${fmt(remaining)} 中有 ¥${fmt(charge)} 小于单笔下限 ¥${fmt(effectiveMinChunk)}，无法继续循环刷。`);
+          break;
+        }
+        const chunks = splitIntoChunks(charge, effectiveMinChunk, effectiveMaxChunk, rng);
+        const actual = sumArr(chunks);
+        if (actual <= 0) {
+          warnings.push(`循环刷金额 ¥${fmt(charge)} 由于单笔约束无法拆分，已停止。`);
+          break;
+        }
+        chunks.forEach((amt, i) => events.push({
+          date: dueDate,
+          type: "extra",
+          amount: amt,
+          card: name,
+          note: `循环刷 ${i+1}/${chunks.length}`
+        }));
+        remaining -= actual;
+        extraCharged += actual;
+        totalCharged += actual;
+        currentOutstanding += actual;
+        continue;
+      }
+
+      // available == 0：需要还款释放额度。为简单且不会出负数，这里选择“还清当前欠款”再继续刷。
+      const repayAmt = currentOutstanding;
+      if (repayAmt <= 0) break;
+      events.push({
+        date: dueDate,
+        type: "repay-extra",
+        amount: repayAmt,
+        card: name,
+        note: "循环还款 (清空欠款腾额度)"
+      });
+      currentOutstanding -= repayAmt; // -> 0
+    }
+
+    // Investment potential: Weighted average or simplified peak?
+    // Simplified: The max balance we held "for a while".
+    // Phase 1 + Previous is held until Due Date.
+    const investPeak = (mode === "steady") ? (startOutstanding + charge1) : charge1;
+
+    return {
+      name, limitL, monthlyS,
+      stmtDate, dueDate, chargeStart,
+      phase1: charge1, 
+      phase2: charge2 + extraCharged, // dueDate 当天的刷卡总额（补刷 + 循环刷）
+      investPeak, 
+      events,
+      warnings: remaining > 0
+        ? [...warnings, `仍有 ¥${fmt(remaining)} 未排期（请检查额度 / 单笔下限≥¥${fmt(effectiveMinChunk)} / 单笔上限）。`]
+        : warnings
+    };
+  }
+
+  // ---------- UI Logic ----------
+
+  const state = {
+    cards: [
+      { name: "中信白", limitL: 129000, stmtDay: 2, dueDay: 21, monthlyS: 100000 },
+      { name: "广发白", limitL: 69400, stmtDay: 3, dueDay: 23, monthlyS: 50000 },
+      { name: "农行白", limitL: 25000, stmtDay: 5, dueDay: 16, monthlyS: 40000 }
+    ],
+    // 计划“盐值”：默认 0 表示同输入同结果；点击“重新生成”才会改变
+    planSalt: 0,
+    doneIds: {} // { [eventId]: true }
+  };
+
+  function init() {
+    // Load from localStorage if exists
+    const persisted = loadPersisted();
+    if (persisted && typeof persisted === 'object') {
+      if (Array.isArray(persisted.cards) && persisted.cards.length) state.cards = persisted.cards;
+      if (typeof persisted.planSalt === 'number') state.planSalt = persisted.planSalt >>> 0;
+      if (persisted.doneIds && typeof persisted.doneIds === 'object') state.doneIds = persisted.doneIds || {};
+    }
+
+    // Set default month
+    const now = new Date();
+    const defaultMonth = `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+    $('#planMonth').value = (persisted && persisted.planMonth) ? persisted.planMonth : defaultMonth;
+    $('#minChunk').value = (persisted && persisted.minChunk) ? String(persisted.minChunk) : $('#minChunk').value;
+    $('#maxChunk').value = (persisted && persisted.maxChunk) ? String(persisted.maxChunk) : $('#maxChunk').value;
+    $('#merchantCount').value = (persisted && persisted.merchantCount) ? String(persisted.merchantCount) : $('#merchantCount').value;
+    $('#merchantCap').value = (persisted && persisted.merchantCap) ? String(persisted.merchantCap) : $('#merchantCap').value;
+    $('#mode').value = (persisted && persisted.mode) ? String(persisted.mode) : $('#mode').value;
+    
+    // Global Listeners
+    ['planMonth', 'minChunk', 'maxChunk', 'merchantCount', 'merchantCap', 'mode'].forEach(id => {
+      document.getElementById(id).addEventListener('input', runCalculation);
+    });
+
+    // Timeline: toggle done
+    $('#timeline').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-eid]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-eid');
+      if (!id) return;
+      if (state.doneIds && state.doneIds[id]) delete state.doneIds[id];
+      else state.doneIds[id] = true;
+
+      // persist immediately
+      savePersisted({
+        planMonth: $('#planMonth').value,
+        minChunk: Number($('#minChunk').value),
+        maxChunk: Number($('#maxChunk').value),
+        merchantCount: Number($('#merchantCount').value),
+        merchantCap: Number($('#merchantCap').value),
+        mode: $('#mode').value,
+        cards: state.cards,
+        planSalt: state.planSalt >>> 0,
+        doneIds: state.doneIds
+      });
+
+      // redraw without changing plan
+      if (window.__lastResults && window.__lastEvents) {
+        updateGlobalStats(window.__lastResults, window.__lastEvents);
+        renderTimeline(window.__lastEvents);
+      } else {
+        runCalculation();
+      }
+    });
+
+    // Seed controls
+    $('#regenPlan').addEventListener('click', () => {
+      state.planSalt = newSeed();
+      // 立即保存，避免刷新导致丢失
+      savePersisted({
+        planMonth: $('#planMonth').value,
+        minChunk: Number($('#minChunk').value),
+        maxChunk: Number($('#maxChunk').value),
+        merchantCount: Number($('#merchantCount').value),
+        merchantCap: Number($('#merchantCap').value),
+        mode: $('#mode').value,
+        cards: state.cards,
+        planSalt: state.planSalt >>> 0
+      });
+      runCalculation();
+    });
+    $('#resetLocal').addEventListener('click', () => {
+      clearPersisted();
+      // reload to default
+      location.reload();
+    });
+
+    // Add Card Listener
+    $('#addCard').addEventListener('click', () => {
+      state.cards.push({ name: "新卡片", limitL: 50000, stmtDay: 1, dueDay: 20, monthlyS: 30000 });
+      renderTable();
+      runCalculation();
+    });
+
+    renderTable();
+    runCalculation();
+  }
+
+  const persistNow = debounce(() => {
+    savePersisted({
+      planMonth: $('#planMonth').value,
+      minChunk: Number($('#minChunk').value),
+      maxChunk: Number($('#maxChunk').value),
+      merchantCount: Number($('#merchantCount').value),
+      merchantCap: Number($('#merchantCap').value),
+      mode: $('#mode').value,
+      cards: state.cards,
+      planSalt: state.planSalt >>> 0,
+      doneIds: state.doneIds
+    });
+  }, 150);
+
+  function renderTable() {
+    const tbody = $('#cardsTbody');
+    tbody.innerHTML = '';
+    
+    state.cards.forEach((card, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="table-input" data-idx="${idx}" data-field="name" value="${card.name}" /></td>
+        <td><input type="number" class="table-input" data-idx="${idx}" data-field="limitL" value="${card.limitL}" /></td>
+        <td><input type="number" class="table-input" data-idx="${idx}" data-field="stmtDay" value="${card.stmtDay}" min="1" max="31" /></td>
+        <td><input type="number" class="table-input" data-idx="${idx}" data-field="dueDay" value="${card.dueDay}" min="1" max="31" /></td>
+        <td><input type="number" class="table-input" data-idx="${idx}" data-field="monthlyS" value="${card.monthlyS}" /></td>
+        <td class="text-right">
+          <button class="btn btn-danger-ghost" onclick="removeCard(${idx})">
+            <svg viewBox="0 0 24 24" class="icon"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Bind inputs
+    $$('.table-input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = e.target.dataset.idx;
+        const field = e.target.dataset.field;
+        state.cards[idx][field] = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+        persistNow();
+        debouncedCalc(); // Auto refresh
+      });
+    });
+  }
+
+  window.removeCard = (idx) => {
+    state.cards.splice(idx, 1);
+    persistNow();
+    renderTable();
+    runCalculation();
+  };
+
+  const debouncedCalc = debounce(runCalculation, 300);
+
+  function runCalculation() {
+    const pm = $('#planMonth').value.split('-');
+    // 单笔硬下限：1万元
+    const rawMin = Number($('#minChunk').value);
+    const rawMax = Number($('#maxChunk').value);
+    const rawMerchantCount = Number($('#merchantCount').value);
+    const rawMerchantCap = Number($('#merchantCap').value);
+
+    const normalizedMin = Math.max(HARD_MIN_SWIPE, Math.round(rawMin || HARD_MIN_SWIPE));
+    const normalizedMax = Math.max(normalizedMin, Math.round(rawMax || normalizedMin));
+    const merchantCount = Math.max(1, Math.round(rawMerchantCount || 5));
+    const merchantCap = Math.max(normalizedMin, Math.round(rawMerchantCap || 50000));
+
+    // 同步回填，避免 UI 和实际计算不一致
+    if (Number($('#minChunk').value) !== normalizedMin) $('#minChunk').value = String(normalizedMin);
+    if (Number($('#maxChunk').value) !== normalizedMax) $('#maxChunk').value = String(normalizedMax);
+    if (Number($('#merchantCount').value) !== merchantCount) $('#merchantCount').value = String(merchantCount);
+    if (Number($('#merchantCap').value) !== merchantCap) $('#merchantCap').value = String(merchantCap);
+
+    const config = {
+      y: Number(pm[0]),
+      m: Number(pm[1]),
+      // 单笔上限还要受“商户单月上限”影响（每商户 5 万）
+      minChunk: normalizedMin,
+      maxChunk: Math.min(normalizedMax, merchantCap),
+      merchantCount,
+      merchantCap,
+      mode: $('#mode').value
+    };
+
+    // 同输入同计划：用“配置签名”做种子；planSalt 只有点击“重新生成”才会改变
+    const signature = stableStringify({
+      planMonth: $('#planMonth').value,
+      minChunk: config.minChunk,
+      maxChunk: config.maxChunk,
+      merchantCount: config.merchantCount,
+      merchantCap: config.merchantCap,
+      mode: config.mode,
+      cards: state.cards
+    });
+    const seed = (fnv1a32(signature) ^ (state.planSalt >>> 0)) >>> 0;
+    config.rng = mulberry32(seed);
+
+    // 立即保存（不要 debounce），保证刷新也不变
+    savePersisted({
+      planMonth: $('#planMonth').value,
+      minChunk: Number($('#minChunk').value),
+      maxChunk: Number($('#maxChunk').value),
+      merchantCount: Number($('#merchantCount').value),
+      merchantCap: Number($('#merchantCap').value),
+      mode: $('#mode').value,
+      cards: state.cards,
+      planSalt: state.planSalt >>> 0,
+      doneIds: state.doneIds
+    });
+
+    const results = state.cards.map(c => computeCardSchedule(c, config));
+    const allEvents = results.flatMap(r => r.events).sort((a,b) => a.date - b.date);
+
+    // 在同卡同月范围内“回拨打散”整百/整千金额（不改变总额、且不破单笔范围）
+    smoothRoundAmounts(allEvents, config.minChunk, config.maxChunk, config.rng);
+
+    // 分配商户（跨卡共享同一套商户池，符合“5个商户每月各5万”的假设）
+    const { events: enrichedEvents, merchantNotes } = assignMerchantsToEvents(allEvents, config.merchantCount, config.merchantCap);
+    // 将“需要更多商户”的提示写到全局统计区
+    window.__merchantNotes = merchantNotes;
+
+    // 给事件生成稳定 id，并缓存供“已操作”使用
+    for (const e of enrichedEvents) {
+      e.id = `${dateISO(e.date)}|${e.card}|${e.type}|${e.amount}|${e.note || ''}|${e.merchant || ''}`;
+    }
+    window.__lastResults = results;
+    window.__lastEvents = enrichedEvents;
+    
+    // Update UI
+    updateGlobalStats(results, enrichedEvents);
+    renderTimeline(enrichedEvents);
+    renderSummary(results);
+  }
+
+  function updateGlobalStats(results, events) {
+    const totalInvestPeak = results.reduce((a,b) => a + b.investPeak, 0);
+    const totalFlow = events.reduce((a,b) => a + b.amount, 0);
+    const planMonthStr = $('#planMonth').value; // YYYY-MM
+    const remainingSum = events.reduce((acc, e) => {
+      if (!e || !e.date) return acc;
+      // 只统计当月事件（按事件日期所属月份）
+      const mk = `${e.date.getFullYear()}-${pad2(e.date.getMonth()+1)}`;
+      if (mk !== planMonthStr) return acc;
+      if (state.doneIds && state.doneIds[e.id]) return acc;
+      // 还款是负向，但这里显示“需操作资金量”用绝对值
+      return acc + Math.abs(Number(e.amount) || 0);
+    }, 0);
+    
+    $('#globalStat').innerHTML = `
+      <div style="font-size:12px; color:var(--text-sec);">理论最大资金占用</div>
+      <div style="font-size:24px; font-weight:700; color:var(--primary);">¥ ${fmt(totalInvestPeak)}</div>
+      ${Array.isArray(window.__merchantNotes) && window.__merchantNotes.length
+        ? `<div class="pill warning" style="margin-top:6px; display:inline-flex;">⚠ ${window.__merchantNotes.join('；')}</div>`
+        : ``}
+    `;
+    $('#eventCount').innerText = `${events.length} 笔规划`;
+    const remainEl = document.getElementById('remainSum');
+    if (remainEl) remainEl.innerText = `剩余 ¥${fmt(remainingSum)}`;
+  }
+
+  function renderTimeline(events) {
+    const container = $('#timeline');
+    if (events.length === 0) {
+      container.innerHTML = '<div class="muted" style="padding:20px; text-align:center;">暂无规划数据，请先配置卡片。</div>';
+      return;
+    }
+
+    // Sort: Date -> Order of Type (Repay first, then Charge)
+    const typeOrder = { "repay-std": 1, "repay-extra": 2, "early": 3, "late": 4, "extra": 5 };
+    events.sort((a,b) => {
+      const d = a.date - b.date;
+      if (d !== 0) return d;
+      return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+    });
+
+    let lastDate = '';
+    const html = events.map(e => {
+      const dStr = dateISO(e.date);
+      const isNewDay = dStr !== lastDate;
+      lastDate = dStr;
+      
+      const isRepay = e.type.includes('repay');
+      const isDone = !!(state.doneIds && e.id && state.doneIds[e.id]);
+      
+      // Styling based on type
+      let typeLabel = "未知";
+      let pillClass = "blue";
+      let amtColor = "var(--text-main)";
+      let prefix = "";
+
+      if (e.type === 'early') { typeLabel = "首刷"; pillClass = "green"; prefix = "+"; }
+      else if (e.type === 'late') { typeLabel = "补刷"; pillClass = "green"; prefix = "+"; }
+      else if (e.type === 'extra') { typeLabel = "循环刷"; pillClass = "warning"; prefix = "+"; }
+      else if (e.type === 'repay-std') { typeLabel = "账单还款"; pillClass = "purple"; prefix = "-"; amtColor = "#7c3aed"; }
+      else if (e.type === 'repay-extra') { typeLabel = "循环还款"; pillClass = "purple"; prefix = "-"; amtColor = "#7c3aed"; }
+      
+      return `
+        <div class="timeline-item ${isDone ? 'done' : ''}">
+          <div class="t-date" style="opacity:${isNewDay ? 1 : 0};">
+            <span class="t-day">${e.date.getDate()}</span>
+            <span class="t-month">${e.date.getMonth()+1}月</span>
+          </div>
+          <div class="t-content">
+            <div class="t-header">
+              <span class="t-card-name" style="${isRepay ? 'color:#6b7280' : ''}">${e.card}</span>
+              <span class="t-amount" style="color:${amtColor}">${prefix} ${fmt(e.amount)}</span>
+            </div>
+            <div class="t-meta">
+              <span class="pill ${pillClass}" style="padding:0 6px; font-size:11px; background:${pillClass==='purple'?'#f3e8ff':''}; color:${pillClass==='purple'?'#7c3aed':''};">${typeLabel}</span>
+              <span>${getDayName(e.date)}</span>
+              ${e.merchant ? `<span class="pill blue" style="padding:0 6px; font-size:11px;">${e.merchant}</span>` : ``}
+              ${e.id ? `<span class="pill blue done-toggle" data-eid="${e.id}" style="padding:0 6px; font-size:11px;">${isDone ? '已操作' : '已操作'}</span>` : ``}
+              <span>${e.note}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  function renderSummary(results) {
+    const container = $('#summary');
+    container.innerHTML = results.map(r => `
+      <div style="border:1px solid var(--border); border-radius:8px; padding:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <strong style="font-size:15px;">${r.name}</strong>
+          <span style="color:var(--primary); font-weight:600;">占用 ¥${fmt(r.investPeak)}</span>
+        </div>
+        <div class="grid-2" style="gap:12px; font-size:13px; color:var(--text-sec);">
+          <div>
+            <div>账单日：${dateISO(r.stmtDate)}</div>
+            <div>建议刷：${dateISO(r.chargeStart)} (¥${fmt(r.phase1)})</div>
+          </div>
+          <div>
+            <div>还款日：${dateISO(r.dueDate)}</div>
+            <div>补刷日：${dateISO(r.dueDate)} (¥${fmt(r.phase2)})</div>
+          </div>
+        </div>
+        ${r.warnings.length ? `<div class="pill red" style="margin-top:8px;">⚠️ ${r.warnings.join(', ')}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // Start
+  init();
+
+</script>
+</body>
+</html>
