@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOSTOR一体把安装检测工具</title>
+    <style>
+        :root {
+            --brand-color: #000;
+            --bg-color: #f3f4f6;
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --warning-bg: #ffedd5;
+            --warning-text: #9a3412;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+        }
+
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-color); padding: 20px; line-height: 1.5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        h1 { text-align: center; margin-bottom: 5px; }
+        .sub-header { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 30px; }
+
+        /* 两栏布局 */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; }
+        @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .panel { padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .panel-title { font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; display: block; }
+        
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; color: #4b5563; font-weight: 600; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
+        input:focus, select:focus { outline: 2px solid var(--brand-color); border-color: transparent; }
+
+        /* 锁定的输入框样式 */
+        input.locked { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; border-color: #e5e7eb; }
+
+        /* 警告框核心样式 */
+        .alert-box { 
+            padding: 15px; border-radius: 8px; margin-top: 20px; 
+            border-left: 5px solid #ccc; display: none; 
+        }
+        .alert-danger { background: var(--danger-bg); color: var(--danger-text); border-left-color: #ef4444; }
+        .alert-warning { background: var(--warning-bg); color: var(--warning-text); border-left-color: #f97316; }
+        .alert-success { background: var(--success-bg); color: var(--success-text); border-left-color: #22c55e; }
+
+        .badge { display: inline-block; padding: 2px 6px; background: #000; color: #fff; font-size: 0.7em; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
+
+        canvas { width: 100%; background: #fff; height: 350px; border-radius: 8px; margin-top: 20px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>BOOSTOR一体把选购 & 几何检测</h1>
+    <div class="sub-header">⚠️ 购买前请务必确认前叉预留长度，避免无法安装</div>
+
+    <div class="grid-2">
+        <div class="panel">
+            <span class="panel-title">🚲 您现在的设置 (Old)</span>
+            
+            <div class="input-group">
+                <label>原车把 Reach (mm)</label>
+                <input type="number" id="oldReach" value="80">
+            </div>
+            <div class="input-group">
+                <label>原把立长度 (mm)</label>
+                <input type="number" id="oldStemLen" value="100">
+            </div>
+            <div class="input-group">
+                <label>原把立角度 (例如 -6 或 -7)</label>
+                <input type="number" id="oldStemAng" value="-6">
+            </div>
+            <div class="input-group">
+                <label>当前垫圈高度 (mm) <span style="color:red">*</span></label>
+                <input type="number" id="oldSpacer" value="20" placeholder="非常重要">
+            </div>
+            <div class="input-group">
+                <label>车架头管角度 (HTA)</label>
+                <input type="number" id="hta" value="73">
+            </div>
+        </div>
+
+        <div class="panel" style="border-color: #000;">
+            <span class="panel-title">🛒 选择我们的产品 (New)</span>
+            
+            <div class="input-group">
+                <label>选择一体把规格：</label>
+                <select id="productSelect" style="font-weight:bold; border: 2px solid #000;"></select>
+            </div>
+
+            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; color: #666;">
+                <div id="productSpecs">请选择规格...</div>
+            </div>
+
+            <div class="grid-2" style="gap:10px; margin-bottom: 0;">
+                <div>
+                    <label>新把立长度 <span class="badge">固定</span></label>
+                    <input type="number" id="newStemLen" class="locked" readonly>
+                </div>
+                <div>
+                    <label>新把立角度 <span class="badge">固定</span></label>
+                    <input type="number" id="newStemAng" class="locked" readonly>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+
+            <div class="input-group">
+                <label style="color: #d97706;">🔧 模拟调整：新垫圈高度 (mm)</label>
+                <input type="number" id="newSpacer" value="20" style="border: 2px solid #d97706;">
+                <div style="font-size: 0.8em; color: #888; margin-top: 4px;">试着修改这个数值，看看能不能找回原来的姿态。</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportCard" class="alert-box">
+        <h3 style="margin:0 0 10px 0;">📊 检测报告</h3>
+        <div id="reportContent"></div>
+    </div>
+
+    <canvas id="simCanvas" width="800" height="400"></canvas>
+</div>
+
+<script>
+    // ▼▼▼▼▼▼ 核心配置区 (一体把数据) ▼▼▼▼▼▼
+    // 对于一体把，你需要把每个尺寸的 Reach/StemLength/StemAngle 都录入
+    // 通常一体把的 Reach 和 Angle 是全系固定的，只有 StemLength 变化，但也有特例
+    const myProducts = [
+        { name: "-- 请选择尺寸 --", value: "none" },
+        
+        // 你的产品列表
+        { name: "90mm x 400mm", stemLen: 90, stemAng: -10, reach: 75, rise: 0 },
+        { name: "100mm x 400mm", stemLen: 100, stemAng: -10, reach: 75, rise: 0 },
+        { name: "110mm x 400mm", stemLen: 110, stemAng: -10, reach: 75, rise: 0 },
+        { name: "120mm x 400mm", stemLen: 120, stemAng: -10, reach: 75, rise: 0 },
+        
+        // 如果有特别激进的版本，比如 -15度
+        { name: "Pro Team 100mm (-15°)", stemLen: 100, stemAng: -15, reach: 80, rise: 0 },
+    ];
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    const dom = {
+        select: document.getElementById('productSelect'),
+        specs: document.getElementById('productSpecs'),
+        newStemLen: document.getElementById('newStemLen'),
+        newStemAng: document.getElementById('newStemAng'),
+        newSpacer: document.getElementById('newSpacer'),
+        report: document.getElementById('reportCard'),
+        reportContent: document.getElementById('reportContent'),
+        inputs: document.querySelectorAll('input')
+    };
+
+    let selectedProduct = null;
+
+    // 初始化
+    function init() {
+        myProducts.forEach((p, i) => {
+            const opt = document.createElement('option');
+            opt.text = p.name;
+            opt.value = i;
+            dom.select.add(opt);
+        });
+
+        dom.select.addEventListener('change', onSelect);
+        dom.inputs.forEach(el => el.addEventListener('input', calculate));
+        
+        // 默认不计算，直到选择
+        drawEmpty();
+    }
+
+    function onSelect(e) {
+        const idx = e.target.value;
+        const p = myProducts[idx];
+
+        if (!p || p.value === 'none') {
+            selectedProduct = null;
+            dom.newStemLen.value = "";
+            dom.newStemAng.value = "";
+            dom.specs.innerHTML = "请选择规格...";
+            dom.report.style.display = 'none';
+            drawEmpty();
+            return;
+        }
+
+        selectedProduct = p;
+        // 自动填入锁定的数据
+        dom.newStemLen.value = p.stemLen;
+        dom.newStemAng.value = p.stemAng;
+        
+        dom.specs.innerHTML = `
+            <strong>固定参数：</strong> 
+            Reach ${p.reach}mm | Rise ${p.rise}mm | 角度 ${p.stemAng}° | 把立 ${p.stemLen}mm
+        `;
+
+        calculate();
+    }
+
+    function calculate() {
+        if (!selectedProduct) return;
+
+        // 获取旧数据
+        const hta = parseFloat(document.getElementById('hta').value);
+        const oldSpacer = parseFloat(document.getElementById('oldSpacer').value);
+        const oldStemLen = parseFloat(document.getElementById('oldStemLen').value);
+        const oldStemAng = parseFloat(document.getElementById('oldStemAng').value);
+        const oldReach = parseFloat(document.getElementById('oldReach').value);
+        // 这里假设旧车把Rise为0，如果有需要也可以加上输入框
+        const oldRise = 0; 
+
+        // 获取新数据 (用户只能动垫圈)
+        const newSpacer = parseFloat(dom.newSpacer.value);
+        
+        // 计算坐标
+        const p1 = getCoordinates(oldSpacer, oldStemLen, oldStemAng, oldReach, oldRise, hta);
+        const p2 = getCoordinates(newSpacer, selectedProduct.stemLen, selectedProduct.stemAng, selectedProduct.reach, selectedProduct.rise, hta);
+
+        const dReach = p2.x - p1.x;
+        const dStack = p2.y - p1.y;
+
+        analyzeRisk(dReach, dStack, newSpacer, oldSpacer);
+        draw(p1, p2, hta);
+    }
+
+    // 风险评估逻辑 (最关键的部分)
+    function analyzeRisk(dR, dS, newSpacer, oldSpacer) {
+        dom.report.style.display = 'block';
+        let html = "";
+        let level = "success"; // success, warning, danger
+        let issues = [];
+
+        // 1. 检查前叉长度危机 (Fork Check)
+        const spacerDiff = newSpacer - oldSpacer;
+        if (spacerDiff > 5) {
+            level = "danger";
+            issues.push(`
+                <div style="margin-bottom:10px;">
+                    <strong>🛑 严重警告：前叉长度风险</strong><br>
+                    您在模拟中增加了 <b>${spacerDiff}mm</b> 的垫圈。<br>
+                    <span style="color:#b91c1c">请检查您的爱车：把立上方还有多余的舵管吗？</span><br>
+                    如果您的前叉已经切平，<strong>无法安装此设置</strong>，因为高度不够。
+                </div>
+            `);
+        }
+
+        // 2. 检查 Stack 骤降 (Back Pain Check)
+        if (dS < -15 && spacerDiff <= 0) {
+            // 如果高度降了很多，且用户没加垫圈
+            if(level !== 'danger') level = "warning";
+            issues.push(`
+                <div style="margin-bottom:10px;">
+                    <strong>⚠️ 高度显著降低 (-${Math.abs(dS).toFixed(0)}mm)</strong><br>
+                    新的一体把角度较激进，您的车头会大幅降低。<br>
+                    如果您的腰部柔韧性一般，建议在上方“新垫圈”栏增加垫圈来补偿高度。
+                </div>
+            `);
+        }
+
+        // 3. 检查 Reach 拉伸
+        if (dR > 15) {
+            if(level !== 'danger') level = "warning";
+            issues.push(`
+                <div style="margin-bottom:10px;">
+                    <strong>⚠️ 身体过度拉伸 (+${dR.toFixed(0)}mm)</strong><br>
+                    把立过长或 Reach 过大。由于一体把无法更换把立，请慎重考虑选择更短的尺寸（如 ${selectedProduct.stemLen - 10}mm）。
+                </div>
+            `);
+        }
+
+        // 4. 完美匹配
+        if (issues.length === 0) {
+            if (Math.abs(dR) < 5 && Math.abs(dS) < 5) {
+                html = `<strong>✅ 完美匹配</strong><br>新的设置与您当前的几何几乎一致，可直接安装。`;
+            } else {
+                html = `<strong>✅ 数据变动在合理范围</strong><br>
+                        Reach: ${(dR>0?"+":"")+dR.toFixed(1)}mm <br>
+                        Stack: ${(dS>0?"+":"")+dS.toFixed(1)}mm`;
+            }
+        } else {
+            html = issues.join("");
+        }
+
+        dom.report.className = "alert-box alert-" + level;
+        dom.reportContent.innerHTML = html;
+    }
+
+    function getCoordinates(spacer, stemLen, stemAng, barReach, barRise, hta) {
+        const htaRad = hta * Math.PI / 180;
+        const spX = -1 * spacer * Math.cos(htaRad);
+        const spY = spacer * Math.sin(htaRad);
+        
+        const stemAbsAng = ((hta - 90) + stemAng) * Math.PI / 180;
+        const stX = stemLen * Math.cos(stemAbsAng);
+        const stY = stemLen * Math.sin(stemAbsAng);
+        
+        return {
+            x: spX + stX + barReach,
+            y: spY + stY + barRise,
+            spX, spY, stX, stY
+        };
+    }
+
+    function draw(p1, p2, hta) {
+        const ctx = document.getElementById('simCanvas').getContext('2d');
+        const w = 800; const h = 400;
+        ctx.clearRect(0,0,w,h);
+        
+        const scale = 2.5; const ox = 200; const oy = 350;
+        const toC = (x,y) => ({x: ox + x*scale, y: oy - y*scale});
+
+        // 辅助线
+        ctx.strokeStyle="#eee"; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+
+        function drawBike(p, color, style) {
+            ctx.strokeStyle = color; ctx.lineWidth = style==='dash'?2:5;
+            if(style==='dash') ctx.setLineDash([5,5]); else ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.moveTo(ox, oy); // 碗组底
+            const sp = toC(p.spX, p.spY);
+            ctx.lineTo(sp.x, sp.y); // 垫圈顶
+            const st = toC(p.spX+p.stX, p.spY+p.stY);
+            ctx.lineTo(st.x, st.y); // 把立顶
+            const bar = toC(p.x, p.y);
+            ctx.lineTo(bar.x, bar.y); // 抓握点
+            ctx.stroke();
+
+            // 抓握点圆圈
+            ctx.fillStyle = color; ctx.beginPath(); 
+            ctx.arc(bar.x, bar.y, style==='dash'?4:6, 0, 6.28); ctx.fill();
+        }
+
+        drawBike(p1, "#9ca3af", "dash"); // 旧
+        drawBike(p2, "#000000", "solid"); // 新
+        
+        // 图例
+        ctx.font="14px sans-serif"; ctx.fillStyle="#666";
+        ctx.fillText("● 灰色虚线: 原设置", 80, 30);
+        ctx.fillStyle="#000";
+        ctx.fillText("● 黑色实线: 模拟效果", 87, 50);
+    }
+
+    function drawEmpty() {
+        const ctx = document.getElementById('simCanvas').getContext('2d');
+        ctx.clearRect(0,0,800,400);
+        ctx.font = "20px sans-serif";
+        ctx.fillStyle = "#ccc";
+        ctx.textAlign = "center";
+        ctx.fillText("请在上方选择一个尺寸开始检测", 400, 200);
+    }
+
+    init();
+</script>
+</body>
+</html>
