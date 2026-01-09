@@ -2,173 +2,271 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOSTOR一体把安装检测工具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOOSTOR Pro Geometry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* 全局盒模型修复 */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --brand-color: #000;
-            --bg-color: #f3f4f6;
-            --danger-bg: #fee2e2;
-            --danger-text: #991b1b;
-            --warning-bg: #ffedd5;
-            --warning-text: #9a3412;
-            --success-bg: #dcfce7;
-            --success-text: #166534;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --highlight: #f59e0b;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            
+            --radius-input: 10px;
+            --radius-card: 16px;
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
         }
 
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-color); padding: 20px; line-height: 1.5; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        h1 { text-align: center; margin-bottom: 5px; }
-        .sub-header { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 30px; }
-
-        /* 两栏布局 */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; }
-        @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-
-        .panel { padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
-        .panel-title { font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; display: block; }
-        
-        .input-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.85rem; color: #4b5563; font-weight: 600; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
-        input:focus, select:focus { outline: 2px solid var(--brand-color); border-color: transparent; }
-
-        /* 锁定的输入框样式 */
-        input.locked { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; border-color: #e5e7eb; }
-
-        /* 警告框核心样式 */
-        .alert-box { 
-            padding: 15px; border-radius: 8px; margin-top: 20px; 
-            border-left: 5px solid #ccc; display: none; 
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 30px 15px;
+            line-height: 1.6;
         }
-        .alert-danger { background: var(--danger-bg); color: var(--danger-text); border-left-color: #ef4444; }
-        .alert-warning { background: var(--warning-bg); color: var(--warning-text); border-left-color: #f97316; }
-        .alert-success { background: var(--success-bg); color: var(--success-text); border-left-color: #22c55e; }
 
-        .badge { display: inline-block; padding: 2px 6px; background: #000; color: #fff; font-size: 0.7em; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
+        .container { max-width: 960px; margin: 0 auto; }
 
-        canvas { width: 100%; background: #fff; height: 350px; border-radius: 8px; margin-top: 20px; border: 1px solid #eee; }
+        h1 {
+            text-align: center; font-weight: 800; font-size: 2rem; letter-spacing: -0.03em;
+            color: var(--primary); margin-bottom: 5px;
+        }
+        .sub-header {
+            text-align: center; color: var(--text-sub); margin-bottom: 40px; font-size: 0.95rem;
+        }
+
+        /* 布局 */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        @media(max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; gap: 20px; }
+            body { padding: 20px 10px; }
+        }
+
+        /* 卡片 */
+        .panel {
+            background: var(--bg-card); padding: 25px; border-radius: var(--radius-card);
+            box-shadow: var(--shadow-soft); border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .panel:hover { box-shadow: var(--shadow-hover); }
+        .panel-new { border-top: 4px solid var(--primary); position: relative; }
+
+        .panel-title {
+            font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 20px;
+            display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+        }
+
+        /* 输入框 */
+        .input-group { margin-bottom: 18px; width: 100%; }
+        label {
+            display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+            color: var(--text-sub); font-weight: 600; margin-bottom: 6px;
+        }
+        input, select {
+            width: 100%; padding: 12px 15px; font-size: 0.95rem; font-weight: 600;
+            color: var(--primary); background: #fff; border: 1px solid var(--border);
+            border-radius: var(--radius-input); transition: all 0.2s ease;
+            -webkit-appearance: none; appearance: none;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.2em; cursor: pointer;
+        }
+
+        /* 状态样式 */
+        .locked-input { background-color: #f8fafc; color: #94a3b8; border-color: #f1f5f9; cursor: default; }
+        .spacer-input { border-color: var(--highlight); color: #b45309; background-color: #fffbeb; }
+        .spacer-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+
+        .tag {
+            display: inline-block; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
+            margin-left: 6px; vertical-align: middle; transform: translateY(-1px);
+        }
+        .tag-fix { background: #e2e8f0; color: #64748b; }
+        .tag-edit { background: #dbeafe; color: #1e40af; }
+
+        /* Canvas & Legend */
+        .canvas-container {
+            position: relative; background: #fff; border-radius: var(--radius-card);
+            border: 1px solid var(--border); padding: 10px; box-shadow: var(--shadow-soft);
+            margin-top: 30px; overflow: hidden;
+        }
+        canvas { width: 100%; height: auto; display: block; }
+        
+        .legend {
+            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9);
+            padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem;
+            color: #555; pointer-events: none;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+
+        /* Report */
+        .alert-box {
+            background: #fff; border-radius: var(--radius-card); padding: 25px;
+            margin-top: 30px; display: none; border-left: 5px solid #ccc; box-shadow: var(--shadow-hover);
+        }
+        .alert-success { border-color: #10b981; background: #ecfdf5; }
+        .alert-danger { border-color: #ef4444; background: #fef2f2; }
+        .alert-warning { border-color: #f59e0b; background: #fffbeb; }
+
+        .metric-row {
+            display: flex; justify-content: space-around; text-align: center;
+            margin: 15px 0; padding: 15px 0; background: rgba(255,255,255,0.5);
+            border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);
+        }
+        .metric-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .metric-lbl { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>BOOSTOR一体把选购 & 几何检测</h1>
-    <div class="sub-header">⚠️ 购买前请务必确认前叉预留长度，避免无法安装</div>
+    <h1>BOOSTOR Pro</h1>
+    <div class="sub-header">专业级一体把安装与几何分析系统</div>
 
     <div class="grid-2">
         <div class="panel">
-            <span class="panel-title">🚲 您现在的设置 (Old)</span>
+            <div class="panel-title">🚲 <span>原车设定 (Old)</span></div>
             
             <div class="input-group">
-                <label>原车把 Reach (mm)</label>
+                <label>Reach (前伸量)</label>
                 <input type="number" id="oldReach" value="80">
             </div>
-            <div class="input-group">
-                <label>原把立长度 (mm)</label>
-                <input type="number" id="oldStemLen" value="100">
+            <div class="grid-2" style="margin-bottom: 0; gap: 15px;">
+                <div class="input-group">
+                    <label>把立长度</label>
+                    <input type="number" id="oldStemLen" value="100">
+                </div>
+                <div class="input-group">
+                    <label>把立角度</label>
+                    <input type="number" id="oldStemAng" value="-6">
+                </div>
             </div>
             <div class="input-group">
-                <label>原把立角度 (例如 -6 或 -7)</label>
-                <input type="number" id="oldStemAng" value="-6">
+                <label>垫圈高度 (Spacer) <span style="color:#ef4444">*</span></label>
+                <input type="number" id="oldSpacer" value="20">
             </div>
             <div class="input-group">
-                <label>当前垫圈高度 (mm) <span style="color:red">*</span></label>
-                <input type="number" id="oldSpacer" value="20" placeholder="非常重要">
-            </div>
-            <div class="input-group">
-                <label>车架头管角度 (HTA)</label>
+                <label>头管角度 (HTA)</label>
                 <input type="number" id="hta" value="73">
             </div>
         </div>
 
-        <div class="panel" style="border-color: #000;">
-            <span class="panel-title">🛒 选择我们的产品 (New)</span>
+        <div class="panel panel-new">
+            <div class="panel-title">🛒 <span>目标设定 (New)</span></div>
             
             <div class="input-group">
-                <label>选择一体把规格：</label>
-                <select id="productSelect" style="font-weight:bold; border: 2px solid #000;"></select>
+                <label>选择产品规格</label>
+                <select id="productSelect"></select>
             </div>
 
-            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; color: #666;">
-                <div id="productSpecs">请选择规格...</div>
+            <div id="specDetail" style="background:#f8fafc; padding:12px; border-radius:8px; margin-bottom:20px; display:none;">
+                <div style="font-size:0.85em; color:#64748b; margin-bottom:5px;">规格详情</div>
+                <div id="specText" style="font-weight:700; color:#0f172a;"></div>
             </div>
 
-            <div class="grid-2" style="gap:10px; margin-bottom: 0;">
-                <div>
-                    <label>新把立长度 <span class="badge">固定</span></label>
-                    <input type="number" id="newStemLen" class="locked" readonly>
+            <div class="grid-2" style="margin-bottom: 0; gap: 15px;">
+                <div class="input-group">
+                    <label>新把立长度 <span id="tagLen" class="tag tag-fix">固定</span></label>
+                    <input type="number" id="newStemLen" class="locked-input" readonly>
                 </div>
-                <div>
-                    <label>新把立角度 <span class="badge">固定</span></label>
-                    <input type="number" id="newStemAng" class="locked" readonly>
+                <div class="input-group">
+                    <label>新把立角度 <span id="tagAng" class="tag tag-fix">固定</span></label>
+                    <input type="number" id="newStemAng" class="locked-input" readonly>
                 </div>
             </div>
-
-            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
 
             <div class="input-group">
-                <label style="color: #d97706;">🔧 模拟调整：新垫圈高度 (mm)</label>
-                <input type="number" id="newSpacer" value="20" style="border: 2px solid #d97706;">
-                <div style="font-size: 0.8em; color: #888; margin-top: 4px;">试着修改这个数值，看看能不能找回原来的姿态。</div>
+                <label>新车把 Reach <span id="tagReach" class="tag tag-fix">固定</span></label>
+                <input type="number" id="newReach" class="locked-input" readonly>
+            </div>
+
+            <div class="input-group" style="margin-top: 20px;">
+                <label style="color:var(--highlight); display:flex; align-items:center;">
+                    🔧 模拟调整：垫圈高度 (mm)
+                </label>
+                <input type="number" id="newSpacer" value="20" class="spacer-input">
             </div>
         </div>
     </div>
 
     <div id="reportCard" class="alert-box">
-        <h3 style="margin:0 0 10px 0;">📊 检测报告</h3>
         <div id="reportContent"></div>
     </div>
 
-    <canvas id="simCanvas" width="800" height="400"></canvas>
+    <div class="canvas-container">
+        <canvas id="simCanvas" width="900" height="500"></canvas>
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background:#cbd5e1; border:1px dashed #64748b;"></div> 原设置</div>
+            <div class="legend-item"><div class="dot" style="background:#0f172a;"></div> 新设置</div>
+        </div>
+    </div>
 </div>
 
 <script>
-    // ▼▼▼▼▼▼ 核心配置区 (一体把数据) ▼▼▼▼▼▼
-    // 对于一体把，你需要把每个尺寸的 Reach/StemLength/StemAngle 都录入
-    // 通常一体把的 Reach 和 Angle 是全系固定的，只有 StemLength 变化，但也有特例
+    // === 数据配置 ===
+    const FIX_REACH = 70;
+    const FIX_DROP = 125;
+    
     const myProducts = [
-        { name: "-- 请选择尺寸 --", value: "none" },
-        
-        // 你的产品列表
-        { name: "90mm x 400mm", stemLen: 90, stemAng: -10, reach: 75, rise: 0 },
-        { name: "100mm x 400mm", stemLen: 100, stemAng: -10, reach: 75, rise: 0 },
-        { name: "110mm x 400mm", stemLen: 110, stemAng: -10, reach: 75, rise: 0 },
-        { name: "120mm x 400mm", stemLen: 120, stemAng: -10, reach: 75, rise: 0 },
-        
-        // 如果有特别激进的版本，比如 -15度
-        { name: "Pro Team 100mm (-15°)", stemLen: 100, stemAng: -15, reach: 80, rise: 0 },
+        { name: "请选择规格...", value: "none" }, // Index 0 (Placeholder)
+        { name: "90mm (-14.8°)", stemLen: 90, stemAng: -14.8, reach: FIX_REACH, drop: FIX_DROP }, // Index 1
+        { name: "100mm (-11.4°)", stemLen: 100, stemAng: -11.4, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "110mm (-9.2°)",  stemLen: 110, stemAng: -9.2,  reach: FIX_REACH, drop: FIX_DROP },
+        { name: "120mm (-7.2°)",  stemLen: 120, stemAng: -7.2,  reach: FIX_REACH, drop: FIX_DROP },
+        { name: "130mm (-5.56°)", stemLen: 130, stemAng: -5.56, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "---", value: "none" },
+        { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: -6, reach: 75, drop: 125 }
     ];
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     const dom = {
         select: document.getElementById('productSelect'),
-        specs: document.getElementById('productSpecs'),
-        newStemLen: document.getElementById('newStemLen'),
-        newStemAng: document.getElementById('newStemAng'),
-        newSpacer: document.getElementById('newSpacer'),
+        specDetail: document.getElementById('specDetail'),
+        specText: document.getElementById('specText'),
+        inputs: document.querySelectorAll('input'),
+        canvas: document.getElementById('simCanvas'),
         report: document.getElementById('reportCard'),
         reportContent: document.getElementById('reportContent'),
-        inputs: document.querySelectorAll('input')
+        newStemLen: document.getElementById('newStemLen'),
+        newStemAng: document.getElementById('newStemAng'),
+        newReach: document.getElementById('newReach'),
+        newSpacer: document.getElementById('newSpacer'),
+        tags: {
+            len: document.getElementById('tagLen'),
+            ang: document.getElementById('tagAng'),
+            reach: document.getElementById('tagReach')
+        }
     };
 
-    let selectedProduct = null;
-
-    // 初始化
     function init() {
         myProducts.forEach((p, i) => {
             const opt = document.createElement('option');
             opt.text = p.name;
             opt.value = i;
+            if(p.value === 'none' && i !== 0) opt.disabled = true; // Disable separators
             dom.select.add(opt);
         });
 
         dom.select.addEventListener('change', onSelect);
         dom.inputs.forEach(el => el.addEventListener('input', calculate));
         
-        // 默认不计算，直到选择
-        drawEmpty();
+        // 【核心修改】 默认选中第1个有效产品 (Index 1: 90mm)
+        dom.select.value = 1; 
+        // 立即触发 Select 事件，进行计算和绘图
+        dom.select.dispatchEvent(new Event('change'));
     }
 
     function onSelect(e) {
@@ -176,179 +274,237 @@
         const p = myProducts[idx];
 
         if (!p || p.value === 'none') {
-            selectedProduct = null;
-            dom.newStemLen.value = "";
-            dom.newStemAng.value = "";
-            dom.specs.innerHTML = "请选择规格...";
-            dom.report.style.display = 'none';
-            drawEmpty();
+            resetUI();
             return;
         }
 
-        selectedProduct = p;
-        // 自动填入锁定的数据
-        dom.newStemLen.value = p.stemLen;
-        dom.newStemAng.value = p.stemAng;
-        
-        dom.specs.innerHTML = `
-            <strong>固定参数：</strong> 
-            Reach ${p.reach}mm | Rise ${p.rise}mm | 角度 ${p.stemAng}° | 把立 ${p.stemLen}mm
-        `;
-
+        if (p.value === 'custom') {
+            dom.specDetail.style.display = 'none';
+            toggleLock(false);
+            dom.newStemLen.value = 100;
+            dom.newStemAng.value = -6;
+            dom.newReach.value = 75;
+        } else {
+            dom.specDetail.style.display = 'block';
+            dom.specText.innerHTML = `Reach: ${p.reach}mm | Drop: ${p.drop}mm | Angle: ${p.stemAng}°`;
+            toggleLock(true);
+            dom.newStemLen.value = p.stemLen;
+            dom.newStemAng.value = p.stemAng;
+            dom.newReach.value = p.reach;
+        }
         calculate();
     }
 
-    function calculate() {
-        if (!selectedProduct) return;
+    function toggleLock(isLocked) {
+        const addClass = isLocked ? 'locked-input' : 'editable-input';
+        const remClass = isLocked ? 'editable-input' : 'locked-input';
+        const tagText = isLocked ? '固定' : '自定义';
+        const tagClass = isLocked ? 'tag-fix' : 'tag-edit';
 
-        // 获取旧数据
-        const hta = parseFloat(document.getElementById('hta').value);
-        const oldSpacer = parseFloat(document.getElementById('oldSpacer').value);
-        const oldStemLen = parseFloat(document.getElementById('oldStemLen').value);
-        const oldStemAng = parseFloat(document.getElementById('oldStemAng').value);
-        const oldReach = parseFloat(document.getElementById('oldReach').value);
-        // 这里假设旧车把Rise为0，如果有需要也可以加上输入框
-        const oldRise = 0; 
-
-        // 获取新数据 (用户只能动垫圈)
-        const newSpacer = parseFloat(dom.newSpacer.value);
+        ['newStemLen', 'newStemAng', 'newReach'].forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = isLocked;
+            el.className = addClass;
+        });
         
-        // 计算坐标
-        const p1 = getCoordinates(oldSpacer, oldStemLen, oldStemAng, oldReach, oldRise, hta);
-        const p2 = getCoordinates(newSpacer, selectedProduct.stemLen, selectedProduct.stemAng, selectedProduct.reach, selectedProduct.rise, hta);
-
-        const dReach = p2.x - p1.x;
-        const dStack = p2.y - p1.y;
-
-        analyzeRisk(dReach, dStack, newSpacer, oldSpacer);
-        draw(p1, p2, hta);
+        Object.values(dom.tags).forEach(t => {
+            t.innerText = tagText;
+            t.className = `tag ${tagClass}`;
+        });
     }
 
-    // 风险评估逻辑 (最关键的部分)
-    function analyzeRisk(dR, dS, newSpacer, oldSpacer) {
-        dom.report.style.display = 'block';
-        let html = "";
-        let level = "success"; // success, warning, danger
-        let issues = [];
+    function resetUI() {
+        dom.newStemLen.value = "";
+        dom.specDetail.style.display = 'none';
+        dom.report.style.display = 'none';
+        drawGridOnly();
+    }
 
-        // 1. 检查前叉长度危机 (Fork Check)
-        const spacerDiff = newSpacer - oldSpacer;
-        if (spacerDiff > 5) {
-            level = "danger";
-            issues.push(`
-                <div style="margin-bottom:10px;">
-                    <strong>🛑 严重警告：前叉长度风险</strong><br>
-                    您在模拟中增加了 <b>${spacerDiff}mm</b> 的垫圈。<br>
-                    <span style="color:#b91c1c">请检查您的爱车：把立上方还有多余的舵管吗？</span><br>
-                    如果您的前叉已经切平，<strong>无法安装此设置</strong>，因为高度不够。
-                </div>
-            `);
-        }
+    function calculate() {
+        if(!dom.newStemLen.value) return;
 
-        // 2. 检查 Stack 骤降 (Back Pain Check)
-        if (dS < -15 && spacerDiff <= 0) {
-            // 如果高度降了很多，且用户没加垫圈
-            if(level !== 'danger') level = "warning";
-            issues.push(`
-                <div style="margin-bottom:10px;">
-                    <strong>⚠️ 高度显著降低 (-${Math.abs(dS).toFixed(0)}mm)</strong><br>
-                    新的一体把角度较激进，您的车头会大幅降低。<br>
-                    如果您的腰部柔韧性一般，建议在上方“新垫圈”栏增加垫圈来补偿高度。
-                </div>
-            `);
-        }
-
-        // 3. 检查 Reach 拉伸
-        if (dR > 15) {
-            if(level !== 'danger') level = "warning";
-            issues.push(`
-                <div style="margin-bottom:10px;">
-                    <strong>⚠️ 身体过度拉伸 (+${dR.toFixed(0)}mm)</strong><br>
-                    把立过长或 Reach 过大。由于一体把无法更换把立，请慎重考虑选择更短的尺寸（如 ${selectedProduct.stemLen - 10}mm）。
-                </div>
-            `);
-        }
-
-        // 4. 完美匹配
-        if (issues.length === 0) {
-            if (Math.abs(dR) < 5 && Math.abs(dS) < 5) {
-                html = `<strong>✅ 完美匹配</strong><br>新的设置与您当前的几何几乎一致，可直接安装。`;
-            } else {
-                html = `<strong>✅ 数据变动在合理范围</strong><br>
-                        Reach: ${(dR>0?"+":"")+dR.toFixed(1)}mm <br>
-                        Stack: ${(dS>0?"+":"")+dS.toFixed(1)}mm`;
+        const data = {
+            hta: parseFloat(document.getElementById('hta').value) || 73,
+            old: {
+                spacer: parseFloat(document.getElementById('oldSpacer').value) || 0,
+                len: parseFloat(document.getElementById('oldStemLen').value) || 100,
+                ang: parseFloat(document.getElementById('oldStemAng').value) || -6,
+                reach: parseFloat(document.getElementById('oldReach').value) || 80,
+                drop: 125 
+            },
+            new: {
+                spacer: parseFloat(dom.newSpacer.value) || 0,
+                len: parseFloat(dom.newStemLen.value),
+                ang: parseFloat(dom.newStemAng.value),
+                reach: parseFloat(dom.newReach.value),
+                drop: FIX_DROP
             }
-        } else {
-            html = issues.join("");
-        }
+        };
 
-        dom.report.className = "alert-box alert-" + level;
-        dom.reportContent.innerHTML = html;
+        const p1 = getGeo(data.old.spacer, data.old.len, data.old.ang, data.old.reach, data.old.drop, data.hta);
+        const p2 = getGeo(data.new.spacer, data.new.len, data.new.ang, data.new.reach, data.new.drop, data.hta);
+
+        renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer);
+        draw(p1, p2, data.hta);
     }
 
-    function getCoordinates(spacer, stemLen, stemAng, barReach, barRise, hta) {
-        const htaRad = hta * Math.PI / 180;
-        const spX = -1 * spacer * Math.cos(htaRad);
+    function getGeo(spacer, len, ang, reach, drop, hta) {
+        const rad = Math.PI / 180;
+        const htaRad = hta * rad;
+        
+        const spX = -spacer * Math.cos(htaRad);
         const spY = spacer * Math.sin(htaRad);
         
-        const stemAbsAng = ((hta - 90) + stemAng) * Math.PI / 180;
-        const stX = stemLen * Math.cos(stemAbsAng);
-        const stY = stemLen * Math.sin(stemAbsAng);
+        const stemAbsAng = ((hta - 90) + ang) * rad;
+        const stX = len * Math.cos(stemAbsAng);
+        const stY = len * Math.sin(stemAbsAng);
         
         return {
-            x: spX + stX + barReach,
-            y: spY + stY + barRise,
-            spX, spY, stX, stY
+            x: spX + stX + reach,
+            y: spY + stY,
+            spX, spY, stX, stY, drop
         };
     }
 
-    function draw(p1, p2, hta) {
-        const ctx = document.getElementById('simCanvas').getContext('2d');
-        const w = 800; const h = 400;
-        ctx.clearRect(0,0,w,h);
-        
-        const scale = 2.5; const ox = 200; const oy = 350;
-        const toC = (x,y) => ({x: ox + x*scale, y: oy - y*scale});
+    function renderReport(dR, dS, dSpacer) {
+        dom.report.style.display = 'block';
+        let status = { color: 'green', title: '✅ 几何匹配良好', class: 'alert-success' };
+        let msg = "";
 
-        // 辅助线
-        ctx.strokeStyle="#eee"; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
-
-        function drawBike(p, color, style) {
-            ctx.strokeStyle = color; ctx.lineWidth = style==='dash'?2:5;
-            if(style==='dash') ctx.setLineDash([5,5]); else ctx.setLineDash([]);
-            
-            ctx.beginPath();
-            ctx.moveTo(ox, oy); // 碗组底
-            const sp = toC(p.spX, p.spY);
-            ctx.lineTo(sp.x, sp.y); // 垫圈顶
-            const st = toC(p.spX+p.stX, p.spY+p.stY);
-            ctx.lineTo(st.x, st.y); // 把立顶
-            const bar = toC(p.x, p.y);
-            ctx.lineTo(bar.x, bar.y); // 抓握点
-            ctx.stroke();
-
-            // 抓握点圆圈
-            ctx.fillStyle = color; ctx.beginPath(); 
-            ctx.arc(bar.x, bar.y, style==='dash'?4:6, 0, 6.28); ctx.fill();
+        if (dSpacer > 5) {
+            status = { color: 'red', title: '🛑 警告：需要增加垫圈', class: 'alert-danger' };
+            msg = `注意：您需要增加 <b>${dSpacer}mm</b> 垫圈。请检查前叉预留长度。`;
+        } else if (dS < -20 || dR > 15) {
+            status = { color: 'orange', title: '⚠️ 姿态变化较大', class: 'alert-warning' };
+            msg = `Stack 降低较多或 Reach 增加明显，可能需要更强的核心力量。`;
         }
 
-        drawBike(p1, "#9ca3af", "dash"); // 旧
-        drawBike(p2, "#000000", "solid"); // 新
-        
-        // 图例
-        ctx.font="14px sans-serif"; ctx.fillStyle="#666";
-        ctx.fillText("● 灰色虚线: 原设置", 80, 30);
-        ctx.fillStyle="#000";
-        ctx.fillText("● 黑色实线: 模拟效果", 87, 50);
+        const sign = n => n > 0 ? "+" : "";
+
+        dom.report.className = `alert-box ${status.class}`;
+        dom.reportContent.innerHTML = `
+            <div style="font-weight:800; font-size:1.2em; color:${status.color === 'red' ? '#991b1b' : (status.color==='orange'?'#9a3412':'#065f46')}; margin-bottom:10px;">
+                ${status.title}
+            </div>
+            <div class="metric-row">
+                <div>
+                    <div class="metric-val">${sign(dR)}${dR.toFixed(1)}</div>
+                    <div class="metric-lbl">Reach 变化 (mm)</div>
+                </div>
+                <div style="width:1px; background:#ccc;"></div>
+                <div>
+                    <div class="metric-val">${sign(dS)}${dS.toFixed(1)}</div>
+                    <div class="metric-lbl">Stack 变化 (mm)</div>
+                </div>
+            </div>
+            <div style="font-size:0.9em; color:#555;">${msg}</div>
+        `;
     }
 
-    function drawEmpty() {
-        const ctx = document.getElementById('simCanvas').getContext('2d');
-        ctx.clearRect(0,0,800,400);
-        ctx.font = "20px sans-serif";
-        ctx.fillStyle = "#ccc";
-        ctx.textAlign = "center";
-        ctx.fillText("请在上方选择一个尺寸开始检测", 400, 200);
+    function draw(p1, p2, hta) {
+        const ctx = dom.canvas.getContext('2d');
+        const w = dom.canvas.width;
+        const h = dom.canvas.height;
+        ctx.clearRect(0,0,w,h);
+
+        drawGrid(ctx, w, h);
+
+        const scale = 2.5; 
+        const originX = 200; 
+        const originY = 400; 
+
+        // 地面
+        ctx.strokeStyle = "#e2e8f0";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+
+        // 头管参考
+        const htaRad = hta * Math.PI / 180;
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 20;
+        ctx.lineCap = "butt";
+        ctx.beginPath();
+        const htBottomX = originX + 50 * Math.cos(htaRad) * scale;
+        const htBottomY = originY + 50 * Math.sin(htaRad) * scale;
+        ctx.moveTo(htBottomX, htBottomY); 
+        ctx.lineTo(originX, originY);
+        ctx.stroke();
+
+        function drawBikePart(p, color, isGhost) {
+            ctx.save();
+            ctx.translate(originX, originY);
+            ctx.scale(scale, -scale); 
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = isGhost ? 1 : 2;
+            if(isGhost) {
+                ctx.setLineDash([5, 3]);
+                ctx.globalAlpha = 0.4;
+            } else {
+                ctx.globalAlpha = 1.0;
+                ctx.shadowColor = "rgba(0,0,0,0.2)";
+                ctx.shadowBlur = 10;
+            }
+
+            // 垫圈
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(p.spX, p.spY);
+            ctx.lineCap = "butt"; ctx.lineWidth = 10; ctx.stroke();
+
+            // 把立
+            ctx.beginPath();
+            ctx.moveTo(p.spX, p.spY); ctx.lineTo(p.spX + p.stX, p.spY + p.stY);
+            ctx.lineWidth = 8; ctx.stroke();
+
+            // 弯把形状
+            const barX = p.x;
+            const barY = p.y;
+            const dropVal = p.drop;
+            
+            ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+            
+            ctx.beginPath();
+            ctx.moveTo(p.spX + p.stX, p.spY + p.stY);
+            ctx.lineTo(barX, barY); 
+            
+            // 下把位
+            const cp1x = barX + 30; const cp1y = barY;
+            const cp2x = barX + 30; const cp2y = barY - dropVal;
+            const endX = barX - 10; const endY = barY - dropVal;
+
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+            ctx.stroke();
+
+            // 标注点
+            ctx.fillStyle = isGhost ? "#94a3b8" : "#fff";
+            ctx.beginPath();
+            ctx.arc(barX, barY, isGhost ? 2 : 3, 0, Math.PI * 2);
+            ctx.fill();
+            if(!isGhost) ctx.stroke();
+
+            ctx.restore();
+        }
+
+        drawBikePart(p1, "#64748b", true); 
+        drawBikePart(p2, "#0f172a", false); 
+    }
+
+    function drawGrid(ctx, w, h) {
+        ctx.strokeStyle = "#f1f5f9";
+        ctx.lineWidth = 1;
+        const step = 25; 
+        
+        ctx.beginPath();
+        for (let x = 0; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+        for (let y = 0; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+        ctx.stroke();
+    }
+
+    function drawGridOnly() {
+        const ctx = dom.canvas.getContext('2d');
+        ctx.clearRect(0,0,900,500);
+        drawGrid(ctx, 900, 500);
     }
 
     init();
