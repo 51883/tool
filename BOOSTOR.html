@@ -76,6 +76,14 @@
         input:focus, select:focus {
             outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow);
         }
+        .input-error {
+            border-color: #ef4444;
+            background: #fff5f5;
+            color: #7f1d1d;
+        }
+        .input-error:focus {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+        }
         
         select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -217,6 +225,21 @@
     const FIX_REACH = 70;
     const FIX_DROP = 125;
     const FIX_RISE = 8; // 二次抬升
+    const CANVAS_ASPECT = 500 / 900;
+    const CANVAS_BASE = { width: 900, height: 500, scale: 2.5, originX: 200, originY: 400 };
+
+    const canvasState = { width: CANVAS_BASE.width, height: CANVAS_BASE.height, dpr: 1 };
+    const inputRules = [
+        { id: 'oldReach', label: '旧车 Reach', min: 0, max: 200, step: 0.1 },
+        { id: 'oldStemLen', label: '旧车把立长度', min: 40, max: 200, step: 0.1 },
+        { id: 'oldStemAng', label: '旧车把立角度', min: -30, max: 30, step: 0.1 },
+        { id: 'oldSpacer', label: '旧车垫圈高度', min: 0, max: 80, step: 0.1 },
+        { id: 'hta', label: '头管角度', min: 60, max: 90, step: 0.1 },
+        { id: 'newStemLen', label: '新把立长度', min: 40, max: 200, step: 0.1 },
+        { id: 'newStemAng', label: '新把立角度', min: -30, max: 30, step: 0.1 },
+        { id: 'newReach', label: '新车把 Reach', min: 0, max: 200, step: 0.1 },
+        { id: 'newSpacer', label: '新垫圈高度', min: 0, max: 80, step: 0.1 }
+    ];
     
     // 注意：新产品的角度是固定的负数
     const myProducts = [
@@ -250,7 +273,106 @@
         }
     };
 
+    function applyInputRules() {
+        inputRules.forEach(rule => {
+            const el = document.getElementById(rule.id);
+            if (!el) return;
+            el.min = rule.min;
+            el.max = rule.max;
+            el.step = rule.step;
+            el.setAttribute('inputmode', 'decimal');
+            el.dataset.label = rule.label;
+        });
+    }
+
+    function markInvalid(el) {
+        el.classList.add('input-error');
+        el.setAttribute('aria-invalid', 'true');
+    }
+
+    function clearInvalid(el) {
+        el.classList.remove('input-error');
+        el.removeAttribute('aria-invalid');
+    }
+
+    function clearValidation() {
+        inputRules.forEach(rule => {
+            const el = document.getElementById(rule.id);
+            if (!el) return;
+            clearInvalid(el);
+        });
+    }
+
+    function validateInputs() {
+        const errors = [];
+        inputRules.forEach(rule => {
+            const el = document.getElementById(rule.id);
+            if (!el) return;
+            const raw = el.value.trim();
+            if (raw === "") {
+                markInvalid(el);
+                errors.push(`${rule.label} 不能为空`);
+                return;
+            }
+            const value = Number(raw);
+            if (!Number.isFinite(value)) {
+                markInvalid(el);
+                errors.push(`${rule.label} 请输入数字`);
+                return;
+            }
+            if (value < rule.min || value > rule.max) {
+                markInvalid(el);
+                errors.push(`${rule.label} 范围 ${rule.min}~${rule.max}`);
+                return;
+            }
+            clearInvalid(el);
+        });
+        return errors;
+    }
+
+    function showValidationError(message) {
+        dom.report.className = 'alert-box alert-danger';
+        dom.report.style.display = 'block';
+        dom.reportContent.innerHTML = `
+            <div style="font-weight:800; font-size:1.1em; color:#991b1b; margin-bottom:6px;">
+                输入有误
+            </div>
+            <div style="font-size:0.9em; color:#555; text-align:center;">${message}</div>
+        `;
+    }
+
+    function resizeCanvas() {
+        const rect = dom.canvas.getBoundingClientRect();
+        const width = rect.width > 0 ? rect.width : CANVAS_BASE.width;
+        const height = Math.round(width * CANVAS_ASPECT);
+        const dpr = window.devicePixelRatio || 1;
+
+        dom.canvas.style.height = `${height}px`;
+        dom.canvas.width = Math.round(width * dpr);
+        dom.canvas.height = Math.round(height * dpr);
+
+        const ctx = dom.canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        canvasState.width = width;
+        canvasState.height = height;
+        canvasState.dpr = dpr;
+    }
+
+    function handleResize() {
+        resizeCanvas();
+        if (dom.newStemLen.value === "") {
+            drawGridOnly();
+            return;
+        }
+        calculate();
+    }
+
     function init() {
+        applyInputRules();
+        resizeCanvas();
+        window.addEventListener('resize', handleResize);
+
         myProducts.forEach((p, i) => {
             const opt = document.createElement('option');
             opt.text = p.name;
@@ -318,11 +440,21 @@
         dom.newStemLen.value = "";
         dom.specDetail.style.display = 'none';
         dom.report.style.display = 'none';
+        clearValidation();
         drawGridOnly();
     }
 
     function calculate() {
-        if(!dom.newStemLen.value) return;
+        if (dom.newStemLen.value === "") {
+            dom.report.style.display = 'none';
+            drawGridOnly();
+            return;
+        }
+        const errors = validateInputs();
+        if (errors.length) {
+            showValidationError(errors[0]);
+            return;
+        }
 
         // 【修正】 Old 角度直接读取，不强制 Math.abs。允许正负输入。
         // 默认 HTML value 设为 -6
@@ -422,15 +554,17 @@
 
     function draw(p1, p2, hta) {
         const ctx = dom.canvas.getContext('2d');
-        const w = dom.canvas.width;
-        const h = dom.canvas.height;
+        const w = canvasState.width;
+        const h = canvasState.height;
         ctx.clearRect(0,0,w,h);
 
         drawGrid(ctx, w, h);
 
-        const scale = 2.5; 
-        const originX = 200; 
-        const originY = 400; 
+        const widthScale = w / CANVAS_BASE.width;
+        const heightScale = h / CANVAS_BASE.height;
+        const scale = CANVAS_BASE.scale * widthScale; 
+        const originX = CANVAS_BASE.originX * widthScale; 
+        const originY = CANVAS_BASE.originY * heightScale; 
 
         // 地面
         ctx.strokeStyle = "#e2e8f0";
@@ -512,7 +646,7 @@
     function drawGrid(ctx, w, h) {
         ctx.strokeStyle = "#f1f5f9";
         ctx.lineWidth = 1;
-        const step = 25; 
+        const step = Math.max(18, Math.round(25 * (w / CANVAS_BASE.width))); 
         
         ctx.beginPath();
         for (let x = 0; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
@@ -522,8 +656,8 @@
 
     function drawGridOnly() {
         const ctx = dom.canvas.getContext('2d');
-        ctx.clearRect(0,0,900,500);
-        drawGrid(ctx, 900, 500);
+        ctx.clearRect(0,0,canvasState.width,canvasState.height);
+        drawGrid(ctx, canvasState.width, canvasState.height);
     }
 
     init();
