@@ -6,7 +6,7 @@
     <title>BOOSTOR Pro Geometry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* 全局盒模型与重置 */
+        /* 全局重置 */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -109,12 +109,13 @@
 
         .metric-row {
             display: flex; justify-content: space-around; text-align: center;
-            margin: 15px 0; padding: 15px 0; background: rgba(255,255,255,0.5);
-            border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);
+            margin: 15px 0; padding: 20px 0; background: rgba(255,255,255,0.6);
+            border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);
         }
-        .metric-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
-        .metric-lbl { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; }
-
+        .metric-val { font-size: 1.6rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .metric-lbl { font-size: 0.8rem; color: var(--text-sub); text-transform: uppercase; margin-top: 5px; font-weight: 600;}
+        .metric-icon { font-size: 0.8em; opacity: 0.8; }
+        
         .legend {
             position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9);
             padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem;
@@ -128,7 +129,7 @@
 
 <div class="container">
     <h1>BOOSTOR Pro</h1>
-    <div class="sub-header">专业级一体把安装与几何分析系统</div>
+    <div class="sub-header">专业级一体把安装与几何分析系统 (V5.2)</div>
 
     <div class="grid-2">
         <div class="panel">
@@ -145,7 +146,7 @@
                 </div>
                 <div class="input-group">
                     <label>把立角度 (°)</label>
-                    <input type="number" id="oldStemAng" value="6" placeholder="例如: 6">
+                    <input type="number" id="oldStemAng" value="-6" placeholder="通常为 -6">
                 </div>
             </div>
             <div class="input-group">
@@ -186,6 +187,8 @@
                 <label>新车把 Reach <span id="tagReach" class="tag tag-fix">固定</span></label>
                 <input type="number" id="newReach" class="locked-input" readonly>
             </div>
+            
+            <input type="hidden" id="newRise">
 
             <div class="input-group" style="margin-top: 20px;">
                 <label style="color:var(--highlight); display:flex; align-items:center;">
@@ -210,19 +213,21 @@
 </div>
 
 <script>
-    // === 数据配置 (注意：此处使用正数角度) ===
+    // === 核心数据配置 ===
     const FIX_REACH = 70;
     const FIX_DROP = 125;
+    const FIX_RISE = 8; // 二次抬升
     
+    // 注意：新产品的角度是固定的负数
     const myProducts = [
         { name: "请选择规格...", value: "none" }, 
-        { name: "90mm (14.8°)", stemLen: 90, stemAng: 14.8, reach: FIX_REACH, drop: FIX_DROP },
-        { name: "100mm (11.4°)", stemLen: 100, stemAng: 11.4, reach: FIX_REACH, drop: FIX_DROP },
-        { name: "110mm (9.2°)",  stemLen: 110, stemAng: 9.2,  reach: FIX_REACH, drop: FIX_DROP },
-        { name: "120mm (7.2°)",  stemLen: 120, stemAng: 7.2,  reach: FIX_REACH, drop: FIX_DROP },
-        { name: "130mm (5.56°)", stemLen: 130, stemAng: 5.56, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "90mm (-14.8°)", stemLen: 90, stemAng: -14.8, reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
+        { name: "100mm (-11.4°)", stemLen: 100, stemAng: -11.4, reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
+        { name: "110mm (-9.2°)",  stemLen: 110, stemAng: -9.2,  reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
+        { name: "120mm (-7.2°)",  stemLen: 120, stemAng: -7.2,  reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
+        { name: "130mm (-5.56°)", stemLen: 130, stemAng: -5.56, reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
         { name: "---", value: "none" },
-        { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: 6, reach: 75, drop: 125 }
+        { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: -6, reach: 75, drop: 125, rise: 8 }
     ];
 
     const dom = {
@@ -236,6 +241,7 @@
         newStemLen: document.getElementById('newStemLen'),
         newStemAng: document.getElementById('newStemAng'),
         newReach: document.getElementById('newReach'),
+        newRise: document.getElementById('newRise'),
         newSpacer: document.getElementById('newSpacer'),
         tags: {
             len: document.getElementById('tagLen'),
@@ -256,7 +262,7 @@
         dom.select.addEventListener('change', onSelect);
         dom.inputs.forEach(el => el.addEventListener('input', calculate));
         
-        // 默认选中第一个有效产品 (90mm)
+        // 默认选中第一个有效产品 (Index 1)
         dom.select.value = 1; 
         dom.select.dispatchEvent(new Event('change'));
     }
@@ -274,16 +280,18 @@
             dom.specDetail.style.display = 'none';
             toggleLock(false);
             dom.newStemLen.value = 100;
-            // 默认正数 6度
-            dom.newStemAng.value = 6;
+            dom.newStemAng.value = -6;
             dom.newReach.value = 75;
+            dom.newRise.value = 8;
         } else {
             dom.specDetail.style.display = 'block';
-            dom.specText.innerHTML = `Reach: ${p.reach}mm | Drop: ${p.drop}mm | Angle: ${p.stemAng}°`;
+            // 显示 Rise 信息
+            dom.specText.innerHTML = `Reach: ${p.reach}mm | Angle: ${p.stemAng}° | <span style="color:#059669">Rise: +${p.rise}mm</span>`;
             toggleLock(true);
             dom.newStemLen.value = p.stemLen;
-            dom.newStemAng.value = p.stemAng;
+            dom.newStemAng.value = p.stemAng; 
             dom.newReach.value = p.reach;
+            dom.newRise.value = p.rise;
         }
         calculate();
     }
@@ -316,38 +324,42 @@
     function calculate() {
         if(!dom.newStemLen.value) return;
 
-        // 获取原始输入 (正数)
-        const rawOldAng = parseFloat(document.getElementById('oldStemAng').value) || 6;
+        // 【修正】 Old 角度直接读取，不强制 Math.abs。允许正负输入。
+        // 默认 HTML value 设为 -6
+        const rawOldAng = parseFloat(document.getElementById('oldStemAng').value) || -6;
+        
+        // New 角度 (若是品牌规格则为固定负数，自定义则跟随输入)
         const rawNewAng = parseFloat(dom.newStemAng.value) || 0;
+        const newRise = parseFloat(dom.newRise.value) || 0;
 
         const data = {
             hta: parseFloat(document.getElementById('hta').value) || 73,
             old: {
                 spacer: parseFloat(document.getElementById('oldSpacer').value) || 0,
                 len: parseFloat(document.getElementById('oldStemLen').value) || 100,
-                // 【关键逻辑】把立角度正数转负数参与计算 (向下倾斜)
-                ang: -Math.abs(rawOldAng), 
+                ang: rawOldAng, // 直接使用输入值 (例如 -6 或 6)
                 reach: parseFloat(document.getElementById('oldReach').value) || 80,
-                drop: 125 
+                drop: 125,
+                rise: 0 
             },
             new: {
                 spacer: parseFloat(dom.newSpacer.value) || 0,
                 len: parseFloat(dom.newStemLen.value),
-                // 【关键逻辑】把立角度正数转负数参与计算
-                ang: -Math.abs(rawNewAng),
+                ang: rawNewAng, 
                 reach: parseFloat(dom.newReach.value),
-                drop: FIX_DROP
+                drop: FIX_DROP,
+                rise: newRise 
             }
         };
 
-        const p1 = getGeo(data.old.spacer, data.old.len, data.old.ang, data.old.reach, data.old.drop, data.hta);
-        const p2 = getGeo(data.new.spacer, data.new.len, data.new.ang, data.new.reach, data.new.drop, data.hta);
+        const p1 = getGeo(data.old.spacer, data.old.len, data.old.ang, data.old.reach, data.old.drop, data.old.rise, data.hta);
+        const p2 = getGeo(data.new.spacer, data.new.len, data.new.ang, data.new.reach, data.new.drop, data.new.rise, data.hta);
 
         renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer);
         draw(p1, p2, data.hta);
     }
 
-    function getGeo(spacer, len, ang, reach, drop, hta) {
+    function getGeo(spacer, len, ang, reach, drop, rise, hta) {
         const rad = Math.PI / 180;
         const htaRad = hta * rad;
         
@@ -360,8 +372,8 @@
         
         return {
             x: spX + stX + reach,
-            y: spY + stY,
-            spX, spY, stX, stY, drop
+            y: spY + stY + rise, 
+            spX, spY, stX, stY, drop, rise
         };
     }
 
@@ -371,14 +383,18 @@
         let msg = "";
 
         if (dSpacer > 5) {
-            status = { color: 'red', title: '🛑 警告：需要增加垫圈', class: 'alert-danger' };
-            msg = `注意：您需要增加 <b>${dSpacer}mm</b> 垫圈。请检查前叉预留长度。`;
+            status = { color: 'red', title: '🛑 警告：垫圈不足', class: 'alert-danger' };
+            msg = `注意：您在模拟中增加了 <b>${dSpacer}mm</b> 垫圈。请务必检查前叉舵管是否预留了足够长度。`;
         } else if (dS < -20 || dR > 15) {
-            status = { color: 'orange', title: '⚠️ 姿态变化较大', class: 'alert-warning' };
-            msg = `Stack 降低较多或 Reach 增加明显，可能需要更强的核心力量。`;
+            status = { color: 'orange', title: '⚠️ 姿态变化较激进', class: 'alert-warning' };
+            msg = `您的骑行姿态将发生较大改变（更低或更前伸），请确认核心力量和柔韧性是否足够。`;
         }
 
-        const sign = n => n > 0 ? "+" : "";
+        const reachText = dR >= 0 ? "前伸 (Longer)" : "缩短 (Shorter)";
+        const reachIcon = dR >= 0 ? "⮕" : "⬅";
+        
+        const stackText = dS >= 0 ? "升高 (Higher)" : "降低 (Lower)";
+        const stackIcon = dS >= 0 ? "⬆" : "⬇";
 
         dom.report.className = `alert-box ${status.class}`;
         dom.reportContent.innerHTML = `
@@ -387,16 +403,20 @@
             </div>
             <div class="metric-row">
                 <div>
-                    <div class="metric-val">${sign(dR)}${dR.toFixed(1)}</div>
-                    <div class="metric-lbl">Reach 变化 (mm)</div>
+                    <div class="metric-val">
+                        <span class="metric-icon">${reachIcon}</span> ${Math.abs(dR).toFixed(1)}
+                    </div>
+                    <div class="metric-lbl">${reachText}</div>
                 </div>
                 <div style="width:1px; background:#ccc;"></div>
                 <div>
-                    <div class="metric-val">${sign(dS)}${dS.toFixed(1)}</div>
-                    <div class="metric-lbl">Stack 变化 (mm)</div>
+                    <div class="metric-val">
+                        <span class="metric-icon">${stackIcon}</span> ${Math.abs(dS).toFixed(1)}
+                    </div>
+                    <div class="metric-lbl">${stackText}</div>
                 </div>
             </div>
-            <div style="font-size:0.9em; color:#555;">${msg}</div>
+            <div style="font-size:0.9em; color:#555; text-align:center;">${msg}</div>
         `;
     }
 
@@ -456,9 +476,9 @@
             ctx.moveTo(p.spX, p.spY); ctx.lineTo(p.spX + p.stX, p.spY + p.stY);
             ctx.lineWidth = 8; ctx.stroke();
 
-            // 弯把形状
+            // 弯把形状 (包含 +8mm Rise 修正)
             const barX = p.x;
-            const barY = p.y;
+            const barY = p.y; 
             const dropVal = p.drop;
             
             ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round";
