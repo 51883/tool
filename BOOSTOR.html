@@ -6,7 +6,7 @@
     <title>BOOSTOR Pro Geometry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* 全局盒模型修复 */
+        /* 全局盒模型与重置 */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -14,7 +14,7 @@
             --accent: #3b82f6;
             --accent-glow: rgba(59, 130, 246, 0.15);
             --highlight: #f59e0b;
-            --bg-body: #f1f5f9;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
             --text-main: #1e293b;
             --text-sub: #64748b;
@@ -44,28 +44,24 @@
             text-align: center; color: var(--text-sub); margin-bottom: 40px; font-size: 0.95rem;
         }
 
-        /* 布局 */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
         @media(max-width: 768px) {
             .grid-2 { grid-template-columns: 1fr; gap: 20px; }
             body { padding: 20px 10px; }
         }
 
-        /* 卡片 */
         .panel {
             background: var(--bg-card); padding: 25px; border-radius: var(--radius-card);
             box-shadow: var(--shadow-soft); border: 1px solid var(--border);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-        .panel:hover { box-shadow: var(--shadow-hover); }
-        .panel-new { border-top: 4px solid var(--primary); position: relative; }
+        .panel-new { border-top: 4px solid var(--primary); }
 
         .panel-title {
             font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 20px;
             display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border);
         }
 
-        /* 输入框 */
         .input-group { margin-bottom: 18px; width: 100%; }
         label {
             display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
@@ -80,16 +76,15 @@
         input:focus, select:focus {
             outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow);
         }
+        
         select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.2em; cursor: pointer;
         }
 
-        /* 状态样式 */
         .locked-input { background-color: #f8fafc; color: #94a3b8; border-color: #f1f5f9; cursor: default; }
         .spacer-input { border-color: var(--highlight); color: #b45309; background-color: #fffbeb; }
-        .spacer-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
-
+        
         .tag {
             display: inline-block; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
             margin-left: 6px; vertical-align: middle; transform: translateY(-1px);
@@ -97,23 +92,13 @@
         .tag-fix { background: #e2e8f0; color: #64748b; }
         .tag-edit { background: #dbeafe; color: #1e40af; }
 
-        /* Canvas & Legend */
         .canvas-container {
             position: relative; background: #fff; border-radius: var(--radius-card);
             border: 1px solid var(--border); padding: 10px; box-shadow: var(--shadow-soft);
             margin-top: 30px; overflow: hidden;
         }
         canvas { width: 100%; height: auto; display: block; }
-        
-        .legend {
-            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9);
-            padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem;
-            color: #555; pointer-events: none;
-        }
-        .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
 
-        /* Report */
         .alert-box {
             background: #fff; border-radius: var(--radius-card); padding: 25px;
             margin-top: 30px; display: none; border-left: 5px solid #ccc; box-shadow: var(--shadow-hover);
@@ -129,6 +114,14 @@
         }
         .metric-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
         .metric-lbl { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; }
+
+        .legend {
+            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9);
+            padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem;
+            color: #555; pointer-events: none;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
     </style>
 </head>
 <body>
@@ -151,8 +144,8 @@
                     <input type="number" id="oldStemLen" value="100">
                 </div>
                 <div class="input-group">
-                    <label>把立角度</label>
-                    <input type="number" id="oldStemAng" value="-6">
+                    <label>把立角度 (°)</label>
+                    <input type="number" id="oldStemAng" value="6" placeholder="例如: 6">
                 </div>
             </div>
             <div class="input-group">
@@ -184,7 +177,7 @@
                     <input type="number" id="newStemLen" class="locked-input" readonly>
                 </div>
                 <div class="input-group">
-                    <label>新把立角度 <span id="tagAng" class="tag tag-fix">固定</span></label>
+                    <label>新把立角度 (°) <span id="tagAng" class="tag tag-fix">固定</span></label>
                     <input type="number" id="newStemAng" class="locked-input" readonly>
                 </div>
             </div>
@@ -217,19 +210,19 @@
 </div>
 
 <script>
-    // === 数据配置 ===
+    // === 数据配置 (注意：此处使用正数角度) ===
     const FIX_REACH = 70;
     const FIX_DROP = 125;
     
     const myProducts = [
-        { name: "请选择规格...", value: "none" }, // Index 0 (Placeholder)
-        { name: "90mm (-14.8°)", stemLen: 90, stemAng: -14.8, reach: FIX_REACH, drop: FIX_DROP }, // Index 1
-        { name: "100mm (-11.4°)", stemLen: 100, stemAng: -11.4, reach: FIX_REACH, drop: FIX_DROP },
-        { name: "110mm (-9.2°)",  stemLen: 110, stemAng: -9.2,  reach: FIX_REACH, drop: FIX_DROP },
-        { name: "120mm (-7.2°)",  stemLen: 120, stemAng: -7.2,  reach: FIX_REACH, drop: FIX_DROP },
-        { name: "130mm (-5.56°)", stemLen: 130, stemAng: -5.56, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "请选择规格...", value: "none" }, 
+        { name: "90mm (14.8°)", stemLen: 90, stemAng: 14.8, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "100mm (11.4°)", stemLen: 100, stemAng: 11.4, reach: FIX_REACH, drop: FIX_DROP },
+        { name: "110mm (9.2°)",  stemLen: 110, stemAng: 9.2,  reach: FIX_REACH, drop: FIX_DROP },
+        { name: "120mm (7.2°)",  stemLen: 120, stemAng: 7.2,  reach: FIX_REACH, drop: FIX_DROP },
+        { name: "130mm (5.56°)", stemLen: 130, stemAng: 5.56, reach: FIX_REACH, drop: FIX_DROP },
         { name: "---", value: "none" },
-        { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: -6, reach: 75, drop: 125 }
+        { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: 6, reach: 75, drop: 125 }
     ];
 
     const dom = {
@@ -256,16 +249,15 @@
             const opt = document.createElement('option');
             opt.text = p.name;
             opt.value = i;
-            if(p.value === 'none' && i !== 0) opt.disabled = true; // Disable separators
+            if(p.value === 'none' && i !== 0) opt.disabled = true; 
             dom.select.add(opt);
         });
 
         dom.select.addEventListener('change', onSelect);
         dom.inputs.forEach(el => el.addEventListener('input', calculate));
         
-        // 【核心修改】 默认选中第1个有效产品 (Index 1: 90mm)
+        // 默认选中第一个有效产品 (90mm)
         dom.select.value = 1; 
-        // 立即触发 Select 事件，进行计算和绘图
         dom.select.dispatchEvent(new Event('change'));
     }
 
@@ -282,7 +274,8 @@
             dom.specDetail.style.display = 'none';
             toggleLock(false);
             dom.newStemLen.value = 100;
-            dom.newStemAng.value = -6;
+            // 默认正数 6度
+            dom.newStemAng.value = 6;
             dom.newReach.value = 75;
         } else {
             dom.specDetail.style.display = 'block';
@@ -323,19 +316,25 @@
     function calculate() {
         if(!dom.newStemLen.value) return;
 
+        // 获取原始输入 (正数)
+        const rawOldAng = parseFloat(document.getElementById('oldStemAng').value) || 6;
+        const rawNewAng = parseFloat(dom.newStemAng.value) || 0;
+
         const data = {
             hta: parseFloat(document.getElementById('hta').value) || 73,
             old: {
                 spacer: parseFloat(document.getElementById('oldSpacer').value) || 0,
                 len: parseFloat(document.getElementById('oldStemLen').value) || 100,
-                ang: parseFloat(document.getElementById('oldStemAng').value) || -6,
+                // 【关键逻辑】把立角度正数转负数参与计算 (向下倾斜)
+                ang: -Math.abs(rawOldAng), 
                 reach: parseFloat(document.getElementById('oldReach').value) || 80,
                 drop: 125 
             },
             new: {
                 spacer: parseFloat(dom.newSpacer.value) || 0,
                 len: parseFloat(dom.newStemLen.value),
-                ang: parseFloat(dom.newStemAng.value),
+                // 【关键逻辑】把立角度正数转负数参与计算
+                ang: -Math.abs(rawNewAng),
                 reach: parseFloat(dom.newReach.value),
                 drop: FIX_DROP
             }
