@@ -552,6 +552,101 @@
         `;
     }
 
+    // --- 新增辅助函数：绘制基准参考系 ---
+    function drawReference(ctx, hta) {
+        const rad = Math.PI / 180;
+        
+        // 【修正1】0度基准线（垂直于头管）：应该是 (90 - hta)。
+        // 例如 HTA=73度，90-73 = 17度 (指向右上方)
+        const zeroAng = (90 - hta) * rad; 
+        
+        // 【修正2】头管绘制方向：垂直线再顺时针旋转90度 (即向下进入车架的方向)
+        // 角度 = 17 - 90 = -73度 (指向右下方，符合真实前叉几何)
+        const steererAng = zeroAng - (90 * rad);
+
+        const refLen = 220; // 延长参考线长度，方便看清
+        const steererLen = 80; // 头管绘制长度
+
+        ctx.save();
+        
+        // 1. 绘制头管 (Steerer/Spacer区域) - 深灰色实线
+        // 这代表把立下方的垫圈/头管部分
+        ctx.strokeStyle = "#94a3b8"; 
+        ctx.lineWidth = 14;
+        ctx.lineCap = "butt"; 
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(steererAng) * steererLen, Math.sin(steererAng) * steererLen);
+        ctx.stroke();
+
+        // 2. 绘制 0度基准线 (垂直于头管) - 红色虚线
+        ctx.strokeStyle = "#ef4444"; 
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 3]); 
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(zeroAng) * refLen, Math.sin(zeroAng) * refLen);
+        ctx.stroke();
+
+        // 3. 绘制直角标记
+        const size = 12;
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.setLineDash([]); 
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        
+        // 计算直角符号的顶点
+        const p1x = Math.cos(zeroAng) * size;
+        const p1y = Math.sin(zeroAng) * size;
+        const p2x = Math.cos(steererAng) * size;
+        const p2y = Math.sin(steererAng) * size;
+        
+        ctx.moveTo(p1x, p1y);
+        ctx.lineTo(p1x + p2x, p1y + p2y); 
+        ctx.lineTo(p2x, p2y);
+        ctx.stroke();
+
+        // 4. 文字标注 (+Angle / -Angle)
+        ctx.save();
+        // 临时取消Y轴翻转，以绘制正向文字
+        ctx.scale(1, -1); 
+        
+        ctx.font = "bold 12px Inter, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+
+        const textDist = 140;
+        const textOffset = 10 * rad; // 文字与线的夹角偏移
+
+        // 计算文字位置 (注意：因为scale翻转了Y，这里sin取反)
+        // +Angle 区域 (线之上)
+        const posX = Math.cos(zeroAng + textOffset) * textDist;
+        const posY = -Math.sin(zeroAng + textOffset) * textDist;
+        
+        // -Angle 区域 (线之下)
+        const negX = Math.cos(zeroAng - textOffset) * textDist;
+        const negY = -Math.sin(zeroAng - textOffset) * textDist;
+
+        // 绘制 "+Angle"
+        ctx.fillStyle = "#ef4444";
+        ctx.fillText("+Angle", posX, posY);
+        
+        // 绘制 "-Angle"
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("-Angle", negX, negY);
+
+        // 绘制 "90°"
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "10px Inter";
+        ctx.textAlign = "center";
+        // 放在直角标记旁边
+        ctx.fillText("90°", (p1x+p2x)*0.9, -(p1y+p2y)*0.9);
+
+        ctx.restore(); 
+        ctx.restore(); 
+    }
+
+    // --- 修改后的主绘图函数 ---
     function draw(p1, p2, hta) {
         const ctx = dom.canvas.getContext('2d');
         const w = canvasState.width;
@@ -566,38 +661,38 @@
         const originX = CANVAS_BASE.originX * widthScale; 
         const originY = CANVAS_BASE.originY * heightScale; 
 
-        // 地面
+        // 地面 (简单线条)
         ctx.strokeStyle = "#e2e8f0";
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
 
-        // 头管参考
-        const htaRad = hta * Math.PI / 180;
-        ctx.strokeStyle = "#cbd5e1";
-        ctx.lineWidth = 20;
-        ctx.lineCap = "butt";
-        ctx.beginPath();
-        const htBottomX = originX + 50 * Math.cos(htaRad) * scale;
-        const htBottomY = originY + 50 * Math.sin(htaRad) * scale;
-        ctx.moveTo(htBottomX, htBottomY); 
-        ctx.lineTo(originX, originY);
-        ctx.stroke();
+        // === 核心修改：统一坐标系 ===
+        ctx.save();
+        ctx.translate(originX, originY);
+        ctx.scale(scale, -scale); // Y轴向上为正，符合几何直觉
 
+        // 1. 先画基准参考系 (在最底层)
+        drawReference(ctx, hta);
+
+        // 2. 定义内部绘制零件函数 (逻辑不变，但在新坐标系下简化了)
         function drawBikePart(p, color, isGhost) {
             ctx.save();
-            ctx.translate(originX, originY);
-            ctx.scale(scale, -scale); 
-
+            // 注意：这里不需要再 translate/scale 了，因为外部已经做过
+            
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.lineWidth = isGhost ? 1 : 2;
+            
             if(isGhost) {
                 ctx.setLineDash([5, 3]);
                 ctx.globalAlpha = 0.4;
             } else {
+                ctx.setLineDash([]);
                 ctx.globalAlpha = 1.0;
                 ctx.shadowColor = "rgba(0,0,0,0.2)";
                 ctx.shadowBlur = 10;
+                // 修正阴影方向 (因为scale翻转了)
+                ctx.shadowOffsetY = 5; 
             }
 
             // 垫圈
@@ -610,7 +705,7 @@
             ctx.moveTo(p.spX, p.spY); ctx.lineTo(p.spX + p.stX, p.spY + p.stY);
             ctx.lineWidth = 8; ctx.stroke();
 
-            // 弯把形状 (包含 +8mm Rise 修正)
+            // 弯把形状
             const barX = p.x;
             const barY = p.y; 
             const dropVal = p.drop;
@@ -629,7 +724,7 @@
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
             ctx.stroke();
 
-            // 标注点
+            // 标注点 (手变位置)
             ctx.fillStyle = isGhost ? "#94a3b8" : "#fff";
             ctx.beginPath();
             ctx.arc(barX, barY, isGhost ? 2 : 3, 0, Math.PI * 2);
@@ -641,6 +736,8 @@
 
         drawBikePart(p1, "#64748b", true); 
         drawBikePart(p2, "#0f172a", false); 
+
+        ctx.restore();
     }
 
     function drawGrid(ctx, w, h) {
