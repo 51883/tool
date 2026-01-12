@@ -101,6 +101,7 @@
         .tag-edit { background: #dbeafe; color: #1e40af; }
 
         .canvas-container {
+            display: none;
             position: relative; background: #fff; border-radius: var(--radius-card);
             border: 1px solid var(--border); padding: 10px; box-shadow: var(--shadow-soft);
             margin-top: 30px; overflow: hidden;
@@ -211,13 +212,13 @@
         <div id="reportContent"></div>
     </div>
 
-    <!-- <div class="canvas-container">
+    <div class="canvas-container">
         <canvas id="simCanvas" width="900" height="500"></canvas>
         <div class="legend">
             <div class="legend-item"><div class="dot" style="background:#cbd5e1; border:1px dashed #64748b;"></div> 原设置</div>
             <div class="legend-item"><div class="dot" style="background:#0f172a;"></div> 新设置</div>
         </div>
-    </div> -->
+    </div>
 </div>
 
 <script>
