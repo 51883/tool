@@ -3,136 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BOOSTOR Pro Geometry</title>
+    <title>BOOSTOR Pro Geometry Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* 全局重置 */
+        /* === 全局样式 === */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.15);
-            --highlight: #f59e0b;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --border: #e2e8f0;
-            
-            --radius-input: 10px;
-            --radius-card: 16px;
-            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            padding: 30px 15px;
-            line-height: 1.6;
-        }
-
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg-body: #f8fafc; --bg-card: #ffffff; --text-main: #1e293b; --text-sub: #64748b; --border: #e2e8f0; --radius-input: 10px; --radius-card: 16px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 30px 15px; line-height: 1.6; }
         .container { max-width: 960px; margin: 0 auto; }
-
-        h1 {
-            text-align: center; font-weight: 800; font-size: 2rem; letter-spacing: -0.03em;
-            color: var(--primary); margin-bottom: 5px;
-        }
-        .sub-header {
-            text-align: center; color: var(--text-sub); margin-bottom: 40px; font-size: 0.95rem;
-        }
-
+        h1 { text-align: center; font-weight: 800; font-size: 2rem; color: var(--primary); margin-bottom: 5px; }
+        .sub-header { text-align: center; color: var(--text-sub); margin-bottom: 40px; font-size: 0.95rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        @media(max-width: 768px) {
-            .grid-2 { grid-template-columns: 1fr; gap: 20px; }
-            body { padding: 20px 10px; }
-        }
-
-        .panel {
-            background: var(--bg-card); padding: 25px; border-radius: var(--radius-card);
-            box-shadow: var(--shadow-soft); border: 1px solid var(--border);
-            transition: transform 0.2s;
-        }
+        @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; gap: 20px; } body { padding: 20px 10px; } }
+        .panel { background: var(--bg-card); padding: 25px; border-radius: var(--radius-card); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
         .panel-new { border-top: 4px solid var(--primary); }
-
-        .panel-title {
-            font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 20px;
-            display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border);
-        }
-
+        .panel-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
         .input-group { margin-bottom: 18px; width: 100%; }
-        label {
-            display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
-            color: var(--text-sub); font-weight: 600; margin-bottom: 6px;
-        }
-        input, select {
-            width: 100%; padding: 12px 15px; font-size: 0.95rem; font-weight: 600;
-            color: var(--primary); background: #fff; border: 1px solid var(--border);
-            border-radius: var(--radius-input); transition: all 0.2s ease;
-            -webkit-appearance: none; appearance: none;
-        }
-        input:focus, select:focus {
-            outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow);
-        }
-        .input-error {
-            border-color: #ef4444;
-            background: #fff5f5;
-            color: #7f1d1d;
-        }
-        .input-error:focus {
-            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
-        }
-        
-        select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.2em; cursor: pointer;
-        }
-
+        label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--text-sub); font-weight: 600; margin-bottom: 6px; }
+        input, select { width: 100%; padding: 12px 15px; font-size: 0.95rem; font-weight: 600; color: var(--primary); background: #fff; border: 1px solid var(--border); border-radius: var(--radius-input); }
         .locked-input { background-color: #f8fafc; color: #94a3b8; border-color: #f1f5f9; cursor: default; }
-        .spacer-input { border-color: var(--highlight); color: #b45309; background-color: #fffbeb; }
-        
-        .tag {
-            display: inline-block; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
-            margin-left: 6px; vertical-align: middle; transform: translateY(-1px);
-        }
-        .tag-fix { background: #e2e8f0; color: #64748b; }
-        .tag-edit { background: #dbeafe; color: #1e40af; }
-
-        /* --- 修改点开始：隐藏图表容器 --- */
-        .canvas-container {
-            display: none; /* 关键修改：隐藏图表 */
-            position: relative; background: #fff; border-radius: var(--radius-card);
-            border: 1px solid var(--border); padding: 10px; box-shadow: var(--shadow-soft);
-            margin-top: 30px; overflow: hidden;
-        }
-        /* --- 修改点结束 --- */
-
+        .spacer-input { border-color: #f59e0b; color: #b45309; background-color: #fffbeb; }
+        .tag { display: inline-block; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+        .tag-fix { background: #e2e8f0; color: #64748b; } .tag-edit { background: #dbeafe; color: #1e40af; }
+        .canvas-container {display: none !important; position: relative; background: #fff; border-radius: var(--radius-card); border: 1px solid var(--border); padding: 10px; margin-top: 30px; overflow: hidden; display: none; }
         canvas { width: 100%; height: auto; display: block; }
-
-        .alert-box {
-            background: #fff; border-radius: var(--radius-card); padding: 25px;
-            margin-top: 30px; display: none; border-left: 5px solid #ccc; box-shadow: var(--shadow-hover);
-        }
-        .alert-success { border-color: #10b981; background: #ecfdf5; }
-        .alert-danger { border-color: #ef4444; background: #fef2f2; }
-        .alert-warning { border-color: #f59e0b; background: #fffbeb; }
-
-        .metric-row {
-            display: flex; justify-content: space-around; text-align: center;
-            margin: 15px 0; padding: 20px 0; background: rgba(255,255,255,0.6);
-            border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);
-        }
+        .alert-box { background: #fff; border-radius: var(--radius-card); padding: 25px; margin-top: 30px; display: none; border-left: 5px solid #ccc; }
+        .alert-success { border-color: #10b981; background: #ecfdf5; } .alert-danger { border-color: #ef4444; background: #fef2f2; } .alert-warning { border-color: #f59e0b; background: #fffbeb; }
+        .metric-row { display: flex; justify-content: space-around; text-align: center; margin: 15px 0; padding: 20px 0; background: rgba(255,255,255,0.6); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); }
         .metric-val { font-size: 1.6rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 5px; }
         .metric-lbl { font-size: 0.8rem; color: var(--text-sub); text-transform: uppercase; margin-top: 5px; font-weight: 600;}
-        .metric-icon { font-size: 0.8em; opacity: 0.8; }
+        .explain-box { background: rgba(255,255,255,0.8); border-radius: 8px; padding: 15px; margin-top: 20px; border: 1px dashed #cbd5e1; font-size: 0.9rem; color: #475569; }
+        .explain-title { font-weight: 700; margin-bottom: 8px; color: #334155; display: flex; align-items: center; gap: 6px; }
+        .explain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width: 600px) { .explain-grid { grid-template-columns: 1fr; gap: 15px; } }
+        .explain-list { list-style: none; padding: 0; margin: 0; }
+        .explain-list li { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid #e2e8f0; font-size: 0.85em; }
         
-        .legend {
-            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9);
-            padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem;
-            color: #555; pointer-events: none;
-        }
+        /* 核心修改：详细解析样式 */
+        details.math-details { margin-top: 20px; background: #f8fafc; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
+        details.math-details summary { padding: 15px; font-weight: 600; cursor: pointer; color: #334155; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; }
+        details.math-details summary::after { content: "查看计算过程 ▼"; font-size: 0.8em; color: #64748b; }
+        details[open].math-details summary::after { content: "收起 ▲"; }
+        .math-content { padding: 20px; font-size: 0.9rem; color: #334155; line-height: 1.8; background: #fff; }
+        .math-block { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e2e8f0; }
+        .math-block:last-child { border: none; margin: 0; padding: 0; }
+        .math-h { font-weight: 700; color: #0f172a; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .math-desc { margin-bottom: 8px; color: #475569; }
+        .math-eq { background: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-family: 'Menlo', monospace; font-size: 0.85em; color: #0f172a; margin: 6px 0; border-left: 3px solid #3b82f6; }
+        .math-note { font-size: 0.85em; color: #64748b; margin-top: 4px; font-style: italic; }
+        .highlight-red { color: #ef4444; font-weight: 700; }
+        .highlight-green { color: #10b981; font-weight: 700; }
+        
+        .legend { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem; pointer-events: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
     </style>
@@ -141,71 +63,35 @@
 
 <div class="container">
     <h1>BOOSTOR Pro</h1>
-    <div class="sub-header">专业级一体把安装与几何分析系统 (V5.2)</div>
+    <div class="sub-header">专业级一体把安装与几何分析系统 (V5.6 Final)</div>
 
     <div class="grid-2">
         <div class="panel">
             <div class="panel-title">🚲 <span>原车设定 (Old)</span></div>
-            
-            <div class="input-group">
-                <label>Reach (前伸量)</label>
-                <input type="number" id="oldReach" value="80">
+            <div class="input-group"><label>Reach</label><input type="number" id="oldReach" value="80"></div>
+            <div class="grid-2" style="margin-bottom:0; gap:15px;">
+                <div class="input-group"><label>把立长度</label><input type="number" id="oldStemLen" value="100"></div>
+                <div class="input-group"><label>把立角度 (°)</label><input type="number" id="oldStemAng" value="-6"></div>
             </div>
-            <div class="grid-2" style="margin-bottom: 0; gap: 15px;">
-                <div class="input-group">
-                    <label>把立长度</label>
-                    <input type="number" id="oldStemLen" value="100">
-                </div>
-                <div class="input-group">
-                    <label>把立角度 (°)</label>
-                    <input type="number" id="oldStemAng" value="-6" placeholder="通常为 -6">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>垫圈高度 (Spacer) <span style="color:#ef4444">*</span></label>
-                <input type="number" id="oldSpacer" value="20">
-            </div>
-            <div class="input-group">
-                <label>头管角度 (HTA)</label>
-                <input type="number" id="hta" value="73">
-            </div>
+            <div class="input-group"><label>垫圈高度 (Spacer)</label><input type="number" id="oldSpacer" value="20"></div>
+            <div class="input-group"><label>头管角度 (HTA)</label><input type="number" id="hta" value="73"></div>
         </div>
 
         <div class="panel panel-new">
             <div class="panel-title">🛒 <span>目标设定 (New)</span></div>
-            
-            <div class="input-group">
-                <label>选择产品规格</label>
-                <select id="productSelect"></select>
-            </div>
-
+            <div class="input-group"><label>选择产品规格</label><select id="productSelect"></select></div>
             <div id="specDetail" style="background:#f8fafc; padding:12px; border-radius:8px; margin-bottom:20px; display:none;">
                 <div style="font-size:0.85em; color:#64748b; margin-bottom:5px;">规格详情</div>
                 <div id="specText" style="font-weight:700; color:#0f172a;"></div>
             </div>
-
-            <div class="grid-2" style="margin-bottom: 0; gap: 15px;">
-                <div class="input-group">
-                    <label>新把立长度 <span id="tagLen" class="tag tag-fix">固定</span></label>
-                    <input type="number" id="newStemLen" class="locked-input" readonly>
-                </div>
-                <div class="input-group">
-                    <label>新把立角度 (°) <span id="tagAng" class="tag tag-fix">固定</span></label>
-                    <input type="number" id="newStemAng" class="locked-input" readonly>
-                </div>
+            <div class="grid-2" style="margin-bottom:0; gap:15px;">
+                <div class="input-group"><label>新把立长度 <span id="tagLen" class="tag tag-fix">固定</span></label><input type="number" id="newStemLen" class="locked-input" readonly></div>
+                <div class="input-group"><label>新把立角度 (°) <span id="tagAng" class="tag tag-fix">固定</span></label><input type="number" id="newStemAng" class="locked-input" readonly></div>
             </div>
-
-            <div class="input-group">
-                <label>新车把 Reach <span id="tagReach" class="tag tag-fix">固定</span></label>
-                <input type="number" id="newReach" class="locked-input" readonly>
-            </div>
-            
+            <div class="input-group"><label>新车把 Reach <span id="tagReach" class="tag tag-fix">固定</span></label><input type="number" id="newReach" class="locked-input" readonly></div>
             <input type="hidden" id="newRise">
-
-            <div class="input-group" style="margin-top: 20px;">
-                <label style="color:var(--highlight); display:flex; align-items:center;">
-                    🔧 模拟调整：垫圈高度 (mm)
-                </label>
+            <div class="input-group" style="margin-top:20px;">
+                <label style="color:var(--highlight);">🔧 模拟调整：垫圈高度 (mm)</label>
                 <input type="number" id="newSpacer" value="20" class="spacer-input">
             </div>
         </div>
@@ -225,27 +111,28 @@
 </div>
 
 <script>
-    // === 核心数据配置 ===
-    const FIX_REACH = 70;
-    const FIX_DROP = 125;
-    const FIX_RISE = 8; // 二次抬升
-    const CANVAS_ASPECT = 500 / 900;
+    // === 基础配置 ===
+    const FIX_REACH=70, FIX_DROP=125, FIX_RISE=8;
     const CANVAS_BASE = { width: 900, height: 500, scale: 2.5, originX: 200, originY: 400 };
+    const canvasState = { width: 900, height: 500 };
 
-    const canvasState = { width: CANVAS_BASE.width, height: CANVAS_BASE.height, dpr: 1 };
-    const inputRules = [
-        { id: 'oldReach', label: '旧车 Reach', min: 0, max: 200, step: 0.1 },
-        { id: 'oldStemLen', label: '旧车把立长度', min: 40, max: 200, step: 0.1 },
-        { id: 'oldStemAng', label: '旧车把立角度', min: -30, max: 30, step: 0.1 },
-        { id: 'oldSpacer', label: '旧车垫圈高度', min: 0, max: 80, step: 0.1 },
-        { id: 'hta', label: '头管角度', min: 60, max: 90, step: 0.1 },
-        { id: 'newStemLen', label: '新把立长度', min: 40, max: 200, step: 0.1 },
-        { id: 'newStemAng', label: '新把立角度', min: -30, max: 30, step: 0.1 },
-        { id: 'newReach', label: '新车把 Reach', min: 0, max: 200, step: 0.1 },
-        { id: 'newSpacer', label: '新垫圈高度', min: 0, max: 80, step: 0.1 }
-    ];
-    
-    // 注意：新产品的角度是固定的负数
+    const dom = {
+        select: document.getElementById('productSelect'),
+        inputs: document.querySelectorAll('input'),
+        canvas: document.getElementById('simCanvas'),
+        report: document.getElementById('reportCard'),
+        reportContent: document.getElementById('reportContent'),
+        specDetail: document.getElementById('specDetail'),
+        specText: document.getElementById('specText'),
+        // 绑定常用输入框
+        newStemLen: document.getElementById('newStemLen'),
+        newStemAng: document.getElementById('newStemAng'),
+        newReach: document.getElementById('newReach'),
+        newRise: document.getElementById('newRise'),
+        newSpacer: document.getElementById('newSpacer'),
+        tags: { len: document.getElementById('tagLen'), ang: document.getElementById('tagAng'), reach: document.getElementById('tagReach') }
+    };
+
     const myProducts = [
         { name: "请选择规格...", value: "none" }, 
         { name: "90mm (14.8°)", stemLen: 90, stemAng: 14.8, reach: FIX_REACH, drop: FIX_DROP, rise: FIX_RISE },
@@ -257,475 +144,289 @@
         { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: -6, reach: 75, drop: 125, rise: 8 }
     ];
 
-    const dom = {
-        select: document.getElementById('productSelect'),
-        specDetail: document.getElementById('specDetail'),
-        specText: document.getElementById('specText'),
-        inputs: document.querySelectorAll('input'),
-        canvas: document.getElementById('simCanvas'),
-        report: document.getElementById('reportCard'),
-        reportContent: document.getElementById('reportContent'),
-        newStemLen: document.getElementById('newStemLen'),
-        newStemAng: document.getElementById('newStemAng'),
-        newReach: document.getElementById('newReach'),
-        newRise: document.getElementById('newRise'),
-        newSpacer: document.getElementById('newSpacer'),
-        tags: {
-            len: document.getElementById('tagLen'),
-            ang: document.getElementById('tagAng'),
-            reach: document.getElementById('tagReach')
-        }
-    };
-
-    function applyInputRules() {
-        inputRules.forEach(rule => {
-            const el = document.getElementById(rule.id);
-            if (!el) return;
-            el.min = rule.min;
-            el.max = rule.max;
-            el.step = rule.step;
-            el.setAttribute('inputmode', 'decimal');
-            el.dataset.label = rule.label;
-        });
-    }
-
-    function markInvalid(el) {
-        el.classList.add('input-error');
-        el.setAttribute('aria-invalid', 'true');
-    }
-
-    function clearInvalid(el) {
-        el.classList.remove('input-error');
-        el.removeAttribute('aria-invalid');
-    }
-
-    function clearValidation() {
-        inputRules.forEach(rule => {
-            const el = document.getElementById(rule.id);
-            if (!el) return;
-            clearInvalid(el);
-        });
-    }
-
-    function validateInputs() {
-        const errors = [];
-        inputRules.forEach(rule => {
-            const el = document.getElementById(rule.id);
-            if (!el) return;
-            const raw = el.value.trim();
-            if (raw === "") {
-                markInvalid(el);
-                errors.push(`${rule.label} 不能为空`);
-                return;
-            }
-            const value = Number(raw);
-            if (!Number.isFinite(value)) {
-                markInvalid(el);
-                errors.push(`${rule.label} 请输入数字`);
-                return;
-            }
-            if (value < rule.min || value > rule.max) {
-                markInvalid(el);
-                errors.push(`${rule.label} 范围 ${rule.min}~${rule.max}`);
-                return;
-            }
-            clearInvalid(el);
-        });
-        return errors;
-    }
-
-    function showValidationError(message) {
-        dom.report.className = 'alert-box alert-danger';
-        dom.report.style.display = 'block';
-        dom.reportContent.innerHTML = `
-            <div style="font-weight:800; font-size:1.1em; color:#991b1b; margin-bottom:6px;">
-                输入有误
-            </div>
-            <div style="font-size:0.9em; color:#555; text-align:center;">${message}</div>
-        `;
-    }
-
-    function resizeCanvas() {
-        // 当 display:none 时，canvas 尺寸会是 0，这是正常的，不会报错
-        const rect = dom.canvas.getBoundingClientRect();
-        const width = rect.width > 0 ? rect.width : CANVAS_BASE.width;
-        const height = Math.round(width * CANVAS_ASPECT);
-        const dpr = window.devicePixelRatio || 1;
-
-        dom.canvas.style.height = `${height}px`;
-        dom.canvas.width = Math.round(width * dpr);
-        dom.canvas.height = Math.round(height * dpr);
-
-        const ctx = dom.canvas.getContext('2d');
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        canvasState.width = width;
-        canvasState.height = height;
-        canvasState.dpr = dpr;
-    }
-
-    function handleResize() {
-        resizeCanvas();
-        if (dom.newStemLen.value === "") {
-            drawGridOnly();
-            return;
-        }
-        calculate();
-    }
-
     function init() {
-        applyInputRules();
         resizeCanvas();
-        window.addEventListener('resize', handleResize);
-
+        window.addEventListener('resize', () => { resizeCanvas(); calculate(); });
         myProducts.forEach((p, i) => {
             const opt = document.createElement('option');
-            opt.text = p.name;
-            opt.value = i;
-            if(p.value === 'none' && i !== 0) opt.disabled = true; 
+            opt.text = p.name; opt.value = i;
+            if(p.value==='none' && i!==0) opt.disabled=true;
             dom.select.add(opt);
         });
-
         dom.select.addEventListener('change', onSelect);
         dom.inputs.forEach(el => el.addEventListener('input', calculate));
-        
-        // 默认选中第一个有效产品 (Index 1)
-        dom.select.value = 1; 
-        dom.select.dispatchEvent(new Event('change'));
+        dom.select.value = 1; dom.select.dispatchEvent(new Event('change'));
     }
 
     function onSelect(e) {
-        const idx = e.target.value;
-        const p = myProducts[idx];
-
-        if (!p || p.value === 'none') {
-            resetUI();
-            return;
-        }
-
-        if (p.value === 'custom') {
-            dom.specDetail.style.display = 'none';
-            toggleLock(false);
-            dom.newStemLen.value = 100;
-            dom.newStemAng.value = -6;
-            dom.newReach.value = 75;
-            dom.newRise.value = 8;
+        const idx = e.target.value; const p = myProducts[idx];
+        if(!p || p.value==='none') return;
+        const isCustom = (p.value==='custom');
+        toggleLock(!isCustom);
+        if(isCustom) {
+            dom.specDetail.style.display='none';
+            dom.newStemLen.value=100; dom.newStemAng.value=-6; dom.newReach.value=75; dom.newRise.value=8;
         } else {
-            dom.specDetail.style.display = 'block';
-            // 显示 Rise 信息
-            dom.specText.innerHTML = `Reach: ${p.reach}mm | Angle: ${p.stemAng}° | <span style="color:#059669">Rise: +${p.rise}mm</span>`;
-            toggleLock(true);
-            dom.newStemLen.value = p.stemLen;
-            dom.newStemAng.value = p.stemAng; 
-            dom.newReach.value = p.reach;
-            dom.newRise.value = p.rise;
+            dom.specDetail.style.display='block';
+            dom.specText.innerHTML = `Reach: ${p.reach}mm | Angle: ${p.stemAng>0?'+':''}${p.stemAng}° | <span style="color:#059669">Rise: +${p.rise}mm</span>`;
+            dom.newStemLen.value=p.stemLen; dom.newStemAng.value=p.stemAng; dom.newReach.value=p.reach; dom.newRise.value=p.rise;
         }
         calculate();
     }
 
     function toggleLock(isLocked) {
-        const addClass = isLocked ? 'locked-input' : 'editable-input';
-        const remClass = isLocked ? 'editable-input' : 'locked-input';
-        const tagText = isLocked ? '固定' : '自定义';
-        const tagClass = isLocked ? 'tag-fix' : 'tag-edit';
-
-        ['newStemLen', 'newStemAng', 'newReach'].forEach(id => {
-            const el = document.getElementById(id);
-            el.readOnly = isLocked;
-            el.className = addClass;
+        ['newStemLen','newStemAng','newReach'].forEach(id=>{
+            const el=document.getElementById(id);
+            el.readOnly=isLocked; el.className=isLocked?'locked-input':'editable-input';
         });
-        
-        Object.values(dom.tags).forEach(t => {
-            t.innerText = tagText;
-            t.className = `tag ${tagClass}`;
-        });
-    }
-
-    function resetUI() {
-        dom.newStemLen.value = "";
-        dom.specDetail.style.display = 'none';
-        dom.report.style.display = 'none';
-        clearValidation();
-        drawGridOnly();
+        const txt = isLocked?'固定':'自定义'; const cls = isLocked?'tag-fix':'tag-edit';
+        Object.values(dom.tags).forEach(t=>{ t.innerText=txt; t.className=`tag ${cls}`; });
     }
 
     function calculate() {
-        if (dom.newStemLen.value === "") {
-            dom.report.style.display = 'none';
-            drawGridOnly();
-            return;
-        }
-        const errors = validateInputs();
-        if (errors.length) {
-            showValidationError(errors[0]);
-            return;
-        }
-
-        const rawOldAng = parseFloat(document.getElementById('oldStemAng').value) || -6;
+        if(dom.newStemLen.value==="") return;
+        const hta = parseFloat(document.getElementById('hta').value)||73;
         
-        const rawNewAng = parseFloat(dom.newStemAng.value) || 0;
-        const newRise = parseFloat(dom.newRise.value) || 0;
-
         const data = {
-            hta: parseFloat(document.getElementById('hta').value) || 73,
+            hta: hta,
             old: {
-                spacer: parseFloat(document.getElementById('oldSpacer').value) || 0,
-                len: parseFloat(document.getElementById('oldStemLen').value) || 100,
-                ang: rawOldAng, 
-                reach: parseFloat(document.getElementById('oldReach').value) || 80,
-                drop: 125,
-                rise: 0 
+                spacer: parseFloat(document.getElementById('oldSpacer').value)||0,
+                len: parseFloat(document.getElementById('oldStemLen').value)||100,
+                ang: parseFloat(document.getElementById('oldStemAng').value)||-6,
+                reach: parseFloat(document.getElementById('oldReach').value)||80,
+                drop: 125, rise: 0 
             },
             new: {
-                spacer: parseFloat(dom.newSpacer.value) || 0,
+                spacer: parseFloat(dom.newSpacer.value)||0,
                 len: parseFloat(dom.newStemLen.value),
-                ang: rawNewAng, 
+                ang: parseFloat(dom.newStemAng.value), 
                 reach: parseFloat(dom.newReach.value),
-                drop: FIX_DROP,
-                rise: newRise 
+                drop: FIX_DROP, rise: parseFloat(dom.newRise.value)||0 
             }
         };
 
-        const p1 = getGeo(data.old.spacer, data.old.len, data.old.ang, data.old.reach, data.old.drop, data.old.rise, data.hta);
-        const p2 = getGeo(data.new.spacer, data.new.len, data.new.ang, data.new.reach, data.new.drop, data.new.rise, data.hta);
+        const p1 = getGeo(data.old, hta);
+        const p2 = getGeo(data.new, hta);
 
-        renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer);
-        draw(p1, p2, data.hta);
+        // 归因分析
+        const reachComps = {
+            stem: p2.stX - p1.stX,
+            bar: data.new.reach - data.old.reach
+        };
+        const stackComps = {
+            spacer: p2.spY - p1.spY,
+            stem: p2.stY - p1.stY,
+            rise: data.new.rise - data.old.rise
+        };
+
+        renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer, reachComps, stackComps, data);
+        draw(p1, p2, hta);
     }
 
-    function getGeo(spacer, len, ang, reach, drop, rise, hta) {
+    function getGeo(d, hta) {
         const rad = Math.PI / 180;
         const htaRad = hta * rad;
+        const spX = -d.spacer * Math.cos(htaRad);
+        const spY = d.spacer * Math.sin(htaRad);
         
-        const spX = -spacer * Math.cos(htaRad);
-        const spY = spacer * Math.sin(htaRad);
-        
-        const stemAbsAng = ((hta - 90) + ang) * rad;
-        const stX = len * Math.cos(stemAbsAng);
-        const stY = len * Math.sin(stemAbsAng);
+        const stemAbsAng = ((hta - 90) + d.ang) * rad;
+        const stX = d.len * Math.cos(stemAbsAng);
+        const stY = d.len * Math.sin(stemAbsAng);
         
         return {
-            x: spX + stX + reach,
-            y: spY + stY + rise, 
-            spX, spY, stX, stY, drop, rise
+            x: spX + stX + d.reach,
+            y: spY + stY + d.rise, 
+            spX, spY, stX, stY, drop: d.drop, rise: d.rise
         };
     }
 
-    function renderReport(dR, dS, dSpacer) {
+    function renderReport(dR, dS, dSpacer, rComps, sComps, data) {
         dom.report.style.display = 'block';
+        const reachDiff = parseFloat(dR.toFixed(1));
+        const stackDiff = parseFloat(dS.toFixed(1));
+        const sign = (n) => n > 0 ? `+${n.toFixed(1)}` : n.toFixed(1);
+
         let status = { color: 'green', title: '✅ 几何匹配良好', class: 'alert-success' };
         let msg = "";
-
         if (dSpacer > 5) {
             status = { color: 'red', title: '🛑 警告：垫圈不足', class: 'alert-danger' };
-            msg = `注意：您在模拟中增加了 <b>${dSpacer}mm</b> 垫圈。请务必检查前叉舵管是否预留了足够长度。`;
-        } else if (dS < -20 || dR > 15) {
+            msg = `注意：模拟增加了 <b>${dSpacer}mm</b> 垫圈，请检查前叉预留长度。`;
+        } else if (stackDiff < -20 || reachDiff > 15) {
             status = { color: 'orange', title: '⚠️ 姿态变化较激进', class: 'alert-warning' };
-            msg = `您的骑行姿态将发生较大改变（更低或更前伸），请确认核心力量和柔韧性是否足够。`;
+            msg = `姿态变化较大，请确认身体柔韧性是否允许。`;
         }
 
-        const reachText = dR >= 0 ? "前伸 (Longer)" : "缩短 (Shorter)";
-        const reachIcon = dR >= 0 ? "⮕" : "⬅";
-        
-        const stackText = dS >= 0 ? "升高 (Higher)" : "降低 (Lower)";
-        const stackIcon = dS >= 0 ? "⬆" : "⬇";
+        const mathHtml = generateMathDetails(data, reachDiff, stackDiff);
 
         dom.report.className = `alert-box ${status.class}`;
         dom.reportContent.innerHTML = `
-            <div style="font-weight:800; font-size:1.2em; color:${status.color === 'red' ? '#991b1b' : (status.color==='orange'?'#9a3412':'#065f46')}; margin-bottom:10px;">
+            <div style="font-weight:800; font-size:1.2em; color:${status.color==='red'?'#991b1b':(status.color==='orange'?'#9a3412':'#065f46')}; margin-bottom:10px;">
                 ${status.title}
             </div>
             <div class="metric-row">
                 <div>
-                    <div class="metric-val">
-                        <span class="metric-icon">${reachIcon}</span> ${Math.abs(dR).toFixed(1)}
-                    </div>
-                    <div class="metric-lbl">${reachText}</div>
+                    <div class="metric-val"><span class="metric-icon">${reachDiff>=0?"⮕":"⬅"}</span> ${Math.abs(reachDiff)}</div>
+                    <div class="metric-lbl">${reachDiff>=0?"前伸 (Longer)":"缩短 (Shorter)"}</div>
                 </div>
                 <div style="width:1px; background:#ccc;"></div>
                 <div>
-                    <div class="metric-val">
-                        <span class="metric-icon">${stackIcon}</span> ${Math.abs(dS).toFixed(1)}
-                    </div>
-                    <div class="metric-lbl">${stackText}</div>
+                    <div class="metric-val"><span class="metric-icon">${stackDiff>=0?"⬆":"⬇"}</span> ${Math.abs(stackDiff)}</div>
+                    <div class="metric-lbl">${stackDiff>=0?"升高 (Higher)":"降低 (Lower)"}</div>
                 </div>
             </div>
             <div style="font-size:0.9em; color:#555; text-align:center;">${msg}</div>
+            
+            <div class="explain-box">
+                <div class="explain-title"><span style="font-size:1.2em">💡</span> 变化归因简析</div>
+                <div class="explain-grid">
+                    <div>
+                        <h4>Reach 组成</h4>
+                        <ul class="explain-list">
+                            <li>车把物理缩短: <b>${sign(rComps.bar)}mm</b></li>
+                            <li>把立角度补偿: <b>${sign(rComps.stem)}mm</b></li>
+                            <li style="border:none; color:#94a3b8; font-size:0.8em; margin-top:4px;">${sign(rComps.bar)} + ${sign(rComps.stem)} ≈ ${sign(reachDiff)}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Stack 组成</h4>
+                        <ul class="explain-list">
+                            <li>垫圈高度调整: <b>${sign(sComps.spacer)}mm</b></li>
+                            <li>把立角度抬升: <b>${sign(sComps.stem)}mm</b></li>
+                            <li>车把自带 Rise: <b>${sign(sComps.rise)}mm</b></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            ${mathHtml}
         `;
     }
 
-    function drawReference(ctx, hta) {
-        const rad = Math.PI / 180;
+    function generateMathDetails(d, rDiff, sDiff) {
+        const rad = Math.PI/180;
+        const htaOffset = d.hta - 90; // e.g., 73 - 90 = -17
         
-        const zeroAng = (90 - hta) * rad; 
+        const oldAbs = htaOffset + d.old.ang;
+        const newAbs = htaOffset + d.new.ang;
         
-        const steererAng = zeroAng - (90 * rad);
-
-        const refLen = 220; 
-        const steererLen = 80; 
-
-        ctx.save();
+        const oldProj = d.old.len * Math.cos(oldAbs * rad);
+        const newProj = d.new.len * Math.cos(newAbs * rad);
         
-        ctx.strokeStyle = "#94a3b8"; 
-        ctx.lineWidth = 14;
-        ctx.lineCap = "butt"; 
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(steererAng) * steererLen, Math.sin(steererAng) * steererLen);
-        ctx.stroke();
+        const oldStemY = d.old.len * Math.sin(oldAbs * rad);
+        const newStemY = d.new.len * Math.sin(newAbs * rad);
 
-        ctx.strokeStyle = "#ef4444"; 
-        ctx.lineWidth = 1;
-        ctx.setLineDash([6, 3]); 
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(zeroAng) * refLen, Math.sin(zeroAng) * refLen);
-        ctx.stroke();
+        const f = (n) => n.toFixed(1);
+        const f2 = (n) => n.toFixed(2);
 
-        const size = 12;
-        ctx.strokeStyle = "#cbd5e1";
-        ctx.setLineDash([]); 
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        
-        const p1x = Math.cos(zeroAng) * size;
-        const p1y = Math.sin(zeroAng) * size;
-        const p2x = Math.cos(steererAng) * size;
-        const p2y = Math.sin(steererAng) * size;
-        
-        ctx.moveTo(p1x, p1y);
-        ctx.lineTo(p1x + p2x, p1y + p2y); 
-        ctx.lineTo(p2x, p2y);
-        ctx.stroke();
+        return `
+            <details class="math-details">
+                <summary>详细数学解析：为何如此计算？</summary>
+                <div class="math-content">
+                    
+                    <div class="math-block">
+                        <div class="math-h">1. 坐标系基准</div>
+                        <div class="math-desc">
+                            所有的计算基于头管角度 (HTA ${d.hta}°)。我们将垂直于地面的线定义为 -90°，那么垂直于头管的线就是 ${f(htaOffset)}°。<br>
+                            这意味着，如果把立是 <b>${f(htaOffset)}°</b>，它就是完全水平的。
+                        </div>
+                    </div>
 
-        ctx.save();
-        ctx.scale(1, -1); 
-        
-        ctx.font = "bold 12px Inter, sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
+                    <div class="math-block">
+                        <div class="math-h">2. Reach 计算（水平方向）</div>
+                        <div class="math-desc">
+                            为什么把立长度一样，Reach 却变了？因为角度改变了投影长度。<br>
+                            想象一根棍子，<b>越平，它在地面的影子越长。</b>
+                        </div>
+                        <div class="math-eq">旧把立角度 (${d.old.ang}°) → 绝对角度 ${f(oldAbs)}°</div>
+                        <div class="math-desc">旧投影长度 = ${d.old.len} × cos(${f(oldAbs)}°) = <b>${f2(oldProj)}mm</b></div>
+                        
+                        <div class="math-eq">新把立角度 (${d.new.ang}°) → 绝对角度 ${f(newAbs)}°</div>
+                        <div class="math-desc">新投影长度 = ${d.new.len} × cos(${f(newAbs)}°) = <b>${f2(newProj)}mm</b></div>
+                        
+                        <div class="math-note">
+                            结论：新把立比旧把立“更平”了，所以水平延伸增加了 
+                            <span class="highlight-green">+${f2(newProj - oldProj)}mm</span>。
+                            这部分增加抵消了车把物理缩短的量。
+                        </div>
+                    </div>
 
-        const textDist = 140;
-        const textOffset = 10 * rad; 
+                    <div class="math-block">
+                        <div class="math-h">3. Stack 计算（垂直方向）</div>
+                        <div class="math-desc">
+                            高度变化由三部分叠加而成：
+                        </div>
+                        <ul style="padding-left:20px; margin:5px 0;">
+                            <li><b>垫圈变化:</b> ${f(d.new.spacer - d.old.spacer)} × sin(${d.hta}°) ≈ <b>${f((d.new.spacer - d.old.spacer)*Math.sin(d.hta*rad))}mm</b></li>
+                            <li><b>Rise (抬升):</b> 新车把自带了 <b>+${d.new.rise}mm</b> 的二次抬升。</li>
+                            <li><b>把立角度:</b> 这是最大的变量。旧把立向下倾斜厉害 (sin${f(oldAbs)}°)，新把立几乎水平 (sin${f(newAbs)}°)。</li>
+                        </ul>
+                        <div class="math-eq">
+                            把立垂直抬升 = ${f(newStemY)} - (${f(oldStemY)}) = <b>+${f(newStemY - oldStemY)}mm</b>
+                        </div>
+                        <div class="math-note">
+                            由于新把立不再像旧把立那样“大幅下沉”，车头高度自然就显著增加了。
+                        </div>
+                    </div>
 
-        const posX = Math.cos(zeroAng + textOffset) * textDist;
-        const posY = -Math.sin(zeroAng + textOffset) * textDist;
-        
-        const negX = Math.cos(zeroAng - textOffset) * textDist;
-        const negY = -Math.sin(zeroAng - textOffset) * textDist;
-
-        ctx.fillStyle = "#ef4444";
-        ctx.fillText("+Angle", posX, posY);
-        
-        ctx.fillStyle = "#64748b";
-        ctx.fillText("-Angle", negX, negY);
-
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "10px Inter";
-        ctx.textAlign = "center";
-        ctx.fillText("90°", (p1x+p2x)*0.9, -(p1y+p2y)*0.9);
-
-        ctx.restore(); 
-        ctx.restore(); 
+                </div>
+            </details>
+        `;
     }
 
+    // 绘图函数保持不变，压缩以节省空间
+    function resizeCanvas() {
+        const rect = dom.canvas.getBoundingClientRect();
+        const w = rect.width||CANVAS_BASE.width; const h = Math.round(w * (500/900));
+        const dpr = window.devicePixelRatio||1;
+        dom.canvas.style.height=`${h}px`; dom.canvas.width=Math.round(w*dpr); dom.canvas.height=Math.round(h*dpr);
+        dom.canvas.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+        canvasState.width=w; canvasState.height=h;
+    }
     function draw(p1, p2, hta) {
         const ctx = dom.canvas.getContext('2d');
-        const w = canvasState.width;
-        const h = canvasState.height;
+        const w=canvasState.width, h=canvasState.height;
         ctx.clearRect(0,0,w,h);
+        
+        ctx.strokeStyle="#f1f5f9"; ctx.lineWidth=1; ctx.beginPath();
+        const step = Math.max(18, Math.round(25*(w/900))); 
+        for(let x=0;x<w;x+=step){ctx.moveTo(x,0);ctx.lineTo(x,h);}
+        for(let y=0;y<h;y+=step){ctx.moveTo(0,y);ctx.lineTo(w,y);}
+        ctx.stroke();
 
-        drawGrid(ctx, w, h);
+        const ws = w/900; const sc = 2.5*ws; 
+        const ox = 200*ws; const oy = 400*(h/500); 
 
-        const widthScale = w / CANVAS_BASE.width;
-        const heightScale = h / CANVAS_BASE.height;
-        const scale = CANVAS_BASE.scale * widthScale; 
-        const originX = CANVAS_BASE.originX * widthScale; 
-        const originY = CANVAS_BASE.originY * heightScale; 
+        ctx.strokeStyle="#e2e8f0"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+        ctx.save(); ctx.translate(ox, oy); ctx.scale(sc, -sc); 
 
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
-
+        drawRef(ctx, hta);
+        drawPart(ctx, p1, "#64748b", true); 
+        drawPart(ctx, p2, "#0f172a", false); 
+        ctx.restore(); dom.canvas.parentElement.style.display='block';
+    }
+    function drawRef(ctx, hta) {
+        const rad=Math.PI/180, zero=(90-hta)*rad, str=zero-(90*rad);
         ctx.save();
-        ctx.translate(originX, originY);
-        ctx.scale(scale, -scale); 
-
-        drawReference(ctx, hta);
-
-        function drawBikePart(p, color, isGhost) {
-            ctx.save();
-            
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = isGhost ? 1 : 2;
-            
-            if(isGhost) {
-                ctx.setLineDash([5, 3]);
-                ctx.globalAlpha = 0.4;
-            } else {
-                ctx.setLineDash([]);
-                ctx.globalAlpha = 1.0;
-                ctx.shadowColor = "rgba(0,0,0,0.2)";
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetY = 5; 
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(0, 0); ctx.lineTo(p.spX, p.spY);
-            ctx.lineCap = "butt"; ctx.lineWidth = 10; ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(p.spX, p.spY); ctx.lineTo(p.spX + p.stX, p.spY + p.stY);
-            ctx.lineWidth = 8; ctx.stroke();
-
-            const barX = p.x;
-            const barY = p.y; 
-            const dropVal = p.drop;
-            
-            ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round";
-            
-            ctx.beginPath();
-            ctx.moveTo(p.spX + p.stX, p.spY + p.stY);
-            ctx.lineTo(barX, barY); 
-            
-            const cp1x = barX + 30; const cp1y = barY;
-            const cp2x = barX + 30; const cp2y = barY - dropVal;
-            const endX = barX - 10; const endY = barY - dropVal;
-
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
-            ctx.stroke();
-
-            ctx.fillStyle = isGhost ? "#94a3b8" : "#fff";
-            ctx.beginPath();
-            ctx.arc(barX, barY, isGhost ? 2 : 3, 0, Math.PI * 2);
-            ctx.fill();
-            if(!isGhost) ctx.stroke();
-
-            ctx.restore();
-        }
-
-        drawBikePart(p1, "#64748b", true); 
-        drawBikePart(p2, "#0f172a", false); 
-
+        ctx.strokeStyle="#94a3b8"; ctx.lineWidth=14; ctx.lineCap="butt"; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(str)*80,Math.sin(str)*80); ctx.stroke();
+        ctx.strokeStyle="#ef4444"; ctx.lineWidth=1; ctx.setLineDash([6,3]); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(zero)*220,Math.sin(zero)*220); ctx.stroke();
         ctx.restore();
     }
-
-    function drawGrid(ctx, w, h) {
-        ctx.strokeStyle = "#f1f5f9";
-        ctx.lineWidth = 1;
-        const step = Math.max(18, Math.round(25 * (w / CANVAS_BASE.width))); 
+    function drawPart(ctx, p, col, isG) {
+        ctx.save();
+        ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=isG?1:2;
+        if(isG){ctx.setLineDash([5,3]); ctx.globalAlpha=0.4;}
+        else{ctx.setLineDash([]); ctx.globalAlpha=1.0; ctx.shadowColor="rgba(0,0,0,0.2)"; ctx.shadowBlur=10; ctx.shadowOffsetY=5;}
         
-        ctx.beginPath();
-        for (let x = 0; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-        for (let y = 0; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
-        ctx.stroke();
-    }
-
-    function drawGridOnly() {
-        const ctx = dom.canvas.getContext('2d');
-        ctx.clearRect(0,0,canvasState.width,canvasState.height);
-        drawGrid(ctx, canvasState.width, canvasState.height);
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(p.spX,p.spY); ctx.lineCap="butt"; ctx.lineWidth=10; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(p.spX,p.spY); ctx.lineTo(p.spX+p.stX,p.spY+p.stY); ctx.lineWidth=8; ctx.stroke();
+        
+        const bx=p.x, by=p.y;
+        ctx.lineWidth=5; ctx.lineCap="round"; ctx.lineJoin="round";
+        ctx.beginPath(); ctx.moveTo(p.spX+p.stX,p.spY+p.stY); ctx.lineTo(bx,by);
+        const c1x=bx+30, c1y=by, c2x=bx+30, c2y=by-p.drop, ex=bx-10, ey=by-p.drop;
+        ctx.bezierCurveTo(c1x,c1y,c2x,c2y,ex,ey); ctx.stroke();
+        
+        ctx.fillStyle=isG?"#94a3b8":"#fff"; ctx.beginPath(); ctx.arc(bx,by,isG?2:3,0,Math.PI*2); ctx.fill(); if(!isG) ctx.stroke();
+        ctx.restore();
     }
 
     init();
