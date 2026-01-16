@@ -39,8 +39,6 @@
     .tag-fix { background: #e2e8f0; color: #64748b; }
     .tag-edit { background: #dbeafe; color: #1e40af; }
 
-    .canvas-container { display: none !important; position: relative; background: #fff; border-radius: var(--radius-card); border: 1px solid var(--border); padding: 10px; margin-top: 30px; overflow: hidden; display: none; }
-    canvas { width: 100%; height: auto; display: block; }
 
     .alert-box { background: #fff; border-radius: var(--radius-card); padding: 25px; margin-top: 30px; display: none; border-left: 5px solid #ccc; }
     .alert-success { border-color: #10b981; background: #ecfdf5; }
@@ -63,9 +61,6 @@
     .math-block:last-child { border: none; margin: 0; padding: 0; }
     .math-h { font-weight: 700; color: #0f172a; margin-bottom: 8px; }
 
-    .legend { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.8rem; pointer-events: none; }
-    .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
   </style>
 </head>
 
@@ -90,13 +85,13 @@
         <div class="panel-title">🛒 <span>目标设定 (New)</span></div>
         <div class="input-group"><label>选择固定抬升(54mm)规格</label><select id="productSelect"></select></div>
 
-        <div id="specDetail" style="background:#f8fafc; padding:12px; border-radius:8px; margin-bottom:20px; display:none;">
-          <div style="font-size:0.85em; color:#64748b; margin-bottom:5px;">规格详情</div>
-          <div id="specText" style="font-weight:700; color:#0f172a;"></div>
-          <div style="font-size:0.75em; color:#059669; margin-top:4px;">✨ Stack 理论值: 54mm (at 73° HTA)</div>
+        <div id="specDetail" style="padding:12px; border-radius:8px; margin-bottom:20px; display:none !important;">
+          <div style="font-size:0.85em; color:#64748b; margin-bottom:5px;display:none !important;">规格详情</div>
+          <div id="specText" style="font-weight:700; color:#0f172a;display:none !important;"></div>
+          <div style="font-size:0.75em; color:#059669; margin-top:4px;display:none !important;">✨ Stack 理论值: 54mm (at 73° HTA)</div>
         </div>
 
-        <div class="grid-2" style="margin-bottom:0; gap:15px;">
+        <div class="grid-2" style="margin-bottom:0; gap:15px; display: none;">
           <div class="input-group">
             <label>物理长度 (Sloped) <span id="tagLen" class="tag tag-fix">固定</span></label>
             <input type="number" id="newStemLen" class="locked-input" readonly>
@@ -124,25 +119,14 @@
       <div id="reportContent"></div>
     </div>
 
-    <div class="canvas-container">
-      <canvas id="simCanvas" width="900" height="500"></canvas>
-      <div class="legend">
-        <div class="legend-item"><div class="dot" style="background:#cbd5e1; border:1px dashed #64748b;"></div> 原设置</div>
-        <div class="legend-item"><div class="dot" style="background:#0f172a;"></div> 新设置</div>
-      </div>
-    </div>
   </div>
 
   <script>
     // === 基础配置 ===
     const FIX_REACH = 70, FIX_DROP = 125;
-    const CANVAS_BASE = { width: 900, height: 500, scale: 2.5, originX: 200, originY: 450 };
-    const canvasState = { width: 900, height: 500 };
-
     const dom = {
       select: document.getElementById('productSelect'),
       inputs: document.querySelectorAll('input'),
-      canvas: document.getElementById('simCanvas'),
       report: document.getElementById('reportCard'),
       reportContent: document.getElementById('reportContent'),
       specDetail: document.getElementById('specDetail'),
@@ -161,19 +145,16 @@
 
     const myProducts = [
       { name: "请选择规格...", value: "none" },
-      { name: "水平87 (Ang 14.8°)",  stemLen: 102.4, stemAng: 14.8, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
-      { name: "水平100 (Ang 11.4°)", stemLen: 113.6, stemAng: 11.4, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
-      { name: "水平110 (Ang 9.2°)",  stemLen: 122.8, stemAng: 9.2,  reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
-      { name: "水平120 (Ang 7.2°)",  stemLen: 131.6, stemAng: 7.2,  reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
-      { name: "水平130 (Ang 5.56°)", stemLen: 140.7, stemAng: 5.56, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
+      { name: "把长90 (Ang 14.8°)",  stemLen: 102.4, stemAng: 14.8, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
+      { name: "把长100 (Ang 11.4°)", stemLen: 113.6, stemAng: 11.4, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
+      { name: "把长110 (Ang 9.2°)",  stemLen: 122.8, stemAng: 9.2,  reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
+      { name: "把长120 (Ang 7.2°)",  stemLen: 131.6, stemAng: 7.2,  reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
+      { name: "把长130 (Ang 5.56°)", stemLen: 140.7, stemAng: 5.56, reach: FIX_REACH, drop: FIX_DROP, rise: 8 },
       { name: "---", value: "none" },
       { name: "🛠️ 自定义模式", value: "custom", stemLen: 100, stemAng: -6, reach: 75, drop: 125, rise: 8 }
     ];
 
     function init() {
-      resizeCanvas();
-      window.addEventListener('resize', () => { resizeCanvas(); calculate(); });
-
       myProducts.forEach((p, i) => {
         const opt = document.createElement('option');
         opt.text = p.name;
@@ -236,11 +217,9 @@
       const hta = parseFloat(document.getElementById('hta').value) || 73;
 
       const data = {
-        hta: hta,
         old: {
           spacer: parseFloat(document.getElementById('oldSpacer').value) || 0,
           len: parseFloat(document.getElementById('oldStemLen').value) || 100,
-          ang: parseFloat(document.getElementById('oldStemAng').value) || -6,
           reach: parseFloat(document.getElementById('oldReach').value) || 80,
           drop: 125,
           rise: 0
@@ -248,7 +227,6 @@
         new: {
           spacer: parseFloat(dom.newSpacer.value) || 0,
           len: parseFloat(dom.newStemLen.value),
-          ang: parseFloat(dom.newStemAng.value),
           reach: parseFloat(dom.newReach.value),
           drop: FIX_DROP,
           rise: parseFloat(dom.newRise.value) || 0
@@ -258,33 +236,17 @@
       const p1 = getGeo(data.old, hta);
       const p2 = getGeo(data.new, hta);
 
-      // 验证：stem 本体对地垂直分量（用于匹配“标称 54mm”）
-      const rad = Math.PI / 180;
-      const baseRiseDeg = 90 - hta;
-      const absStemRad = (baseRiseDeg + data.new.ang) * rad;
-      const stemPureStack = data.new.len * Math.sin(absStemRad);
-
-      renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer, data, stemPureStack);
-      draw(p1, p2, hta);
+      renderReport(p2.x - p1.x, p2.y - p1.y, data.new.spacer - data.old.spacer);
     }
 
-    // ✅ 核心修正：Spacer 沿 HTA(转向管轴线) 投影；Stem 仍用 (90-HTA)+stemAng
+    // 简化模型：把立水平、Rise 垂直；垫圈沿头管轴线投影
     function getGeo(d, hta) {
       const rad = Math.PI / 180;
+      const spX = -d.spacer * Math.cos(hta * rad);
+      const spY = d.spacer * Math.sin(hta * rad);
 
-      // 0°把立基准对地角度（与转向管轴线垂直）
-      const baseStemDeg = 90 - hta;
-
-      // 把立轴线对地绝对角
-      const absStemDeg = baseStemDeg + d.ang;
-
-      // ✅ Spacer：沿转向管轴线（HTA）
-      const spX = -d.spacer * Math.cos(hta * rad); // 向后
-      const spY =  d.spacer * Math.sin(hta * rad); // 向上
-
-      // Stem：沿把立轴线
-      const stX = d.len * Math.cos(absStemDeg * rad);
-      const stY = d.len * Math.sin(absStemDeg * rad);
+      const stX = d.len;
+      const stY = 0;
 
       return {
         x: spX + stX + d.reach,
@@ -295,13 +257,12 @@
       };
     }
 
-    function renderReport(dR, dS, dSpacer, data, stemPureStack) {
+    function renderReport(dR, dS, dSpacer) {
       dom.report.style.display = 'block';
 
       const reachDiff = parseFloat(dR.toFixed(1));
       const stackDiff = parseFloat(dS.toFixed(1));
 
-      // === 新手最直白（无隐喻）主句 ===
       const r = Math.round(Math.abs(reachDiff));
       const s = Math.round(Math.abs(stackDiff));
 
@@ -311,38 +272,32 @@
       let feelTxt = "骑姿变化不大";
       if (s !== 0) feelTxt = (stackDiff >= 0) ? "更直更轻松" : "更趴更激进";
 
-      let msg = `${reachTxt}，${stackTxt}；${feelTxt}。`;
+      const msg = `${reachTxt}，${stackTxt}；${feelTxt}。`;
       let msgExtra = "";
 
-      const isMatch54 = Math.abs(stemPureStack - 54) < 1.0;
-
-      // 状态（不抢主句：主句永远显示；额外提示放第二行）
-      let status = { color: 'green', title: '✅ 结果已计算', class: 'alert-success' };
+      let status = { color: 'green', title: '结果已计算', class: 'alert-success' };
 
       if (dSpacer > 5) {
-        status = { color: 'red', title: '🛑 注意：垫圈变化较大', class: 'alert-danger' };
+        status = { color: 'red', title: '注意：垫圈变化较大', class: 'alert-danger' };
         msgExtra = `模拟增加了 <b>${dSpacer}mm</b> 垫圈。`;
-      } else if (!isMatch54 && Math.abs(data.hta - 73) > 0.5) {
-        status = { color: 'orange', title: '⚠️ 提示：头管角会影响标称堆高', class: 'alert-warning' };
-        msgExtra = `头管角度为 ${data.hta}°，把立本体垂直分量为 ${stemPureStack.toFixed(1)}mm（标称 54mm 会有偏差）。`;
       }
 
-      const mathHtml = generateMathDetails(data, stemPureStack);
+      const titleColor = status.color === 'red' ? '#991b1b' : '#065f46';
 
       dom.report.className = `alert-box ${status.class}`;
       dom.reportContent.innerHTML = `
-        <div style="font-weight:800; font-size:1.2em; color:${status.color==='red' ? '#991b1b' : (status.color==='orange' ? '#9a3412' : '#065f46')}; margin-bottom:10px;">
+        <div style="font-weight:800; font-size:1.2em; color:${titleColor}; margin-bottom:10px;">
           ${status.title}
         </div>
 
         <div class="metric-row">
           <div>
-            <div class="metric-val"><span class="metric-icon">${reachDiff>=0 ? "⮕" : "⬅"}</span> ${Math.abs(reachDiff)}</div>
+            <div class="metric-val"><span class="metric-icon">${reachDiff>=0 ? ">" : "<"}</span> ${Math.abs(reachDiff)}</div>
             <div class="metric-lbl">${reachDiff>=0 ? "前伸 (Longer)" : "缩短 (Shorter)"}</div>
           </div>
           <div style="width:1px; background:#ccc;"></div>
           <div>
-            <div class="metric-val"><span class="metric-icon">${stackDiff>=0 ? "⬆" : "⬇"}</span> ${Math.abs(stackDiff)}</div>
+            <div class="metric-val"><span class="metric-icon">${stackDiff>=0 ? "^" : "v"}</span> ${Math.abs(stackDiff)}</div>
             <div class="metric-lbl">${stackDiff>=0 ? "升高 (Higher)" : "降低 (Lower)"}</div>
           </div>
         </div>
@@ -353,192 +308,14 @@
         </div>
 
         <div class="explain-box">
-          <div class="explain-title"><span style="font-size:1.2em">📐</span> 几何验证</div>
+          <div class="explain-title"><span style="font-size:1.2em">i</span> 怎么算</div>
           <div style="font-size:0.9em; color:#475569;">
-            计算出的把立物理堆高: <b style="color:${isMatch54 ? '#059669' : '#ef4444'}">${stemPureStack.toFixed(1)}mm</b>
-            <br><span style="font-size:0.85em; color:#64748b;">(厂家标称值: 54mm)</span>
+            向前距离 = 把立长度 + 车把向前量 + 垫圈带来的向前变化；高度 = 车把抬升 + 垫圈带来的上升。<br>
+            新数据减旧数据，就是最后的变化。
           </div>
         </div>
-
-        ${mathHtml}
+        
       `;
-    }
-
-    function generateMathDetails(d, stemStack) {
-      const rad = Math.PI / 180;
-      const baseRise = 90 - d.hta;
-      const newAbs = baseRise + d.new.ang;
-      const f = (n) => n.toFixed(1);
-
-      return `
-        <details class="math-details">
-          <summary>详细数学解析：为何是 54mm？(修正算法)</summary>
-          <div class="math-content">
-            <div class="math-block">
-              <div class="math-h">角度定义：把立角度叠加</div>
-              <div class="math-desc">
-                对于头管角 HTA=${d.hta}°，把立 0° 的对地上扬为：<b>(90° - HTA)</b>。<br>
-                把立标称角度 <b>Ang=${d.new.ang}°</b>，表示在该基准上继续上扬/下压。
-              </div>
-            </div>
-            <div class="math-block">
-              <div class="math-h">计算过程 (HTA ${d.hta}°)</div>
-              <div class="math-desc">
-                1. 把立 0° 基准对地角: 90° - ${d.hta}° = <b>+${f(baseRise)}°</b><br>
-                2. 把立轴线对地角: ${f(baseRise)}° + ${d.new.ang}° = <b style="color:#059669">+${f(newAbs)}°</b><br>
-                3. 垂直抬升 = 物理长度(${d.new.len}) × sin(${f(newAbs)}°)<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;= ${d.new.len} × ${Math.sin(newAbs*rad).toFixed(4)} ≈ <b style="font-size:1.1em">${f(stemStack)}mm</b>
-              </div>
-              <div class="math-note">
-                该值用于验证“把立本体”的堆高标称（不含垫圈/把横几何）。
-              </div>
-            </div>
-          </div>
-        </details>
-      `;
-    }
-
-    function resizeCanvas() {
-      const rect = dom.canvas.getBoundingClientRect();
-      const w = rect.width || CANVAS_BASE.width;
-      const h = Math.round(w * (500 / 900));
-      const dpr = window.devicePixelRatio || 1;
-
-      dom.canvas.style.height = `${h}px`;
-      dom.canvas.width = Math.round(w * dpr);
-      dom.canvas.height = Math.round(h * dpr);
-      dom.canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      canvasState.width = w;
-      canvasState.height = h;
-    }
-
-    // === 绘图逻辑 ===
-    function draw(p1, p2, hta) {
-      const ctx = dom.canvas.getContext('2d');
-      const w = canvasState.width, h = canvasState.height;
-      ctx.clearRect(0, 0, w, h);
-
-      // 网格
-      ctx.strokeStyle = "#f1f5f9";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      const step = Math.max(18, Math.round(25 * (w / 900)));
-      for (let x = 0; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-      for (let y = 0; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
-      ctx.stroke();
-
-      const ws = w / 900;
-      const sc = 2.5 * ws;
-      const ox = 200 * ws;
-      const oy = 450 * (h / 500);
-
-      // 地面线
-      ctx.strokeStyle = "#e2e8f0";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, oy);
-      ctx.lineTo(w, oy);
-      ctx.stroke();
-
-      ctx.save();
-      ctx.translate(ox, oy);
-      ctx.scale(sc, -sc);
-
-      drawRef(ctx, hta);
-      drawPart(ctx, p1, "#64748b", true);
-      drawPart(ctx, p2, "#0f172a", false);
-
-      ctx.restore();
-      dom.canvas.parentElement.style.display = 'block';
-    }
-
-    function drawRef(ctx, hta) {
-      const rad = Math.PI / 180;
-
-      const steererAxisAng = (180 - hta) * rad; // 73° => 107°（向上偏左）
-      const baseStemAng = (90 - hta) * rad;     // 73° => 17°（向前偏上）
-
-      ctx.save();
-
-      // 头管（从原点往下画）
-      ctx.strokeStyle = "#94a3b8";
-      ctx.lineWidth = 14;
-      ctx.lineCap = "butt";
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-Math.cos(steererAxisAng) * 80, -Math.sin(steererAxisAng) * 80);
-      ctx.stroke();
-
-      // 把立0°基准线（虚线）
-      ctx.strokeStyle = "#ef4444";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 3]);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(baseStemAng) * 220, Math.sin(baseStemAng) * 220);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawPart(ctx, p, col, isG) {
-      ctx.save();
-      ctx.strokeStyle = col;
-      ctx.fillStyle = col;
-      ctx.lineWidth = isG ? 1 : 2;
-
-      if (isG) {
-        ctx.setLineDash([5, 3]);
-        ctx.globalAlpha = 0.4;
-      } else {
-        ctx.setLineDash([]);
-        ctx.globalAlpha = 1.0;
-        ctx.shadowColor = "rgba(0,0,0,0.2)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 5;
-      }
-
-      // 1. 垫圈
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(p.spX, p.spY);
-      ctx.lineCap = "butt";
-      ctx.lineWidth = 10;
-      ctx.stroke();
-
-      // 2. 把立
-      ctx.beginPath();
-      ctx.moveTo(p.spX, p.spY);
-      ctx.lineTo(p.spX + p.stX, p.spY + p.stY);
-      ctx.lineWidth = 8;
-      ctx.stroke();
-
-      // 3. 车把/弯把到 hood 点
-      const bx = p.x, by = p.y;
-      ctx.lineWidth = 5;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      ctx.beginPath();
-      ctx.moveTo(p.spX + p.stX, p.spY + p.stY);
-      ctx.lineTo(bx, by);
-
-      const c1x = bx + 30, c1y = by,
-            c2x = bx + 30, c2y = by - p.drop,
-            ex  = bx - 10, ey  = by - p.drop;
-
-      ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
-      ctx.stroke();
-
-      // 手变点
-      ctx.fillStyle = isG ? "#94a3b8" : "#fff";
-      ctx.beginPath();
-      ctx.arc(bx, by, isG ? 2 : 3, 0, Math.PI * 2);
-      ctx.fill();
-      if (!isG) ctx.stroke();
-
-      ctx.restore();
     }
 
     init();
