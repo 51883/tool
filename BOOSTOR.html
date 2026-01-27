@@ -11,14 +11,15 @@
     .container { max-width: 700px; margin: 0 auto; }
     
     /* 输入面板 */
-    .panel { background: #fff; padding: 20px; border-radius: var(--radius); border: 1px solid #e2e8f0; margin-bottom: 20px; }
+    .panel-group { display: flex;  gap: 20px; }
+    .panel { width: 50%; background: #fff; padding: 20px; border-radius: var(--radius); border: 1px solid #e2e8f0; margin-bottom: 20px; }
     .panel-new { border-top: 4px solid var(--accent); }
     .panel-head { font-weight: 700; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
     
     .row { display: flex; gap: 15px; margin-bottom: 15px; }
     .col { flex: 1; }
     label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px; }
-    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: var(--primary); }
+    input, select { width: 100%; padding: 5px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: var(--primary); }
     
     /* 结果大卡片 */
     .result-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -28,13 +29,25 @@
     .badge-red { background: #fee2e2; color: #991b1b; }
     .badge-green { background: #dcfce7; color: #166534; }
     
-    /* 解释区（核心修改） */
+    /* 解释区（改为账单样式） */
     .explain { background: #fff; border: 1px dashed #94a3b8; padding: 20px; border-radius: var(--radius); margin-top: 25px; font-size: 0.9rem; }
-    .explain-h { font-weight: 700; color: var(--primary); margin-bottom: 10px; }
-    .calc-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
-    .calc-label { color: #64748b; }
-    .calc-val { font-family: monospace; font-weight: 600; color: var(--accent); }
-    .dynamic-val { color: #d97706; font-weight: 700; } /* 动态变化的数字高亮 */
+    .explain-h { font-weight: 700; color: var(--primary); margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center; }
+    
+    /* 账单表格布局 */
+    .bill-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 15px; margin-bottom: 20px; }
+    .bill-col { display: flex; flex-direction: column; gap: 8px; }
+    .bill-divider { background: #e2e8f0; height: 100%; }
+    
+    .bill-title { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; text-align: center; }
+    .bill-row { display: flex; justify-content: space-between; font-size: 0.85rem; }
+    .bill-label { color: #64748b; }
+    .bill-val { font-weight: 600; color: #0f172a; }
+    .bill-note { font-size: 0.75rem; color: #94a3b8; text-align: right; margin-top:-2px; }
+    
+    .bill-total { border-top: 2px solid #cbd5e1; padding-top: 8px; margin-top: 5px; display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; font-size: 1rem; }
+    
+    .highlight-val { color: #d97706; } /* 橙色高亮动态值 */
+    .cm-tip { font-size: 0.8rem; color: #cbd5e1; margin-top: 5px; font-weight: 400; }
   </style>
 </head>
 <body>
@@ -43,88 +56,141 @@
   <h2 style="text-align:center; color:var(--primary);">BOOSTOR Pro</h2>
   <div style="text-align:center; margin-bottom:20px; color:#64748b; font-size:0.9rem;">Fixed Rise (54mm) 几何计算器</div>
 
-  <div class="panel">
-    <div class="panel-head">🚲 原车数据 (Old)</div>
-    <div class="row">
-      <div class="col"><label>把立长度</label><input type="number" id="oldLen" value="100"></div>
-      <div class="col"><label>把立角度</label><input type="number" id="oldAng" value="-6"></div>
+  <div class="panel-group" >
+    <div class="panel">
+        <div class="panel-head">🚲 原车数据 (Old)</div>
+        <div class="row">
+        <div class="col"><label>把立长度</label><input type="number" id="oldLen" value="100"></div>
+        <div class="col"><label>把立角度</label><input type="number" id="oldAng" value="-6"></div>
+        </div>
+        <div class="row">
+        <div class="col"><label>车把 Reach</label><input type="number" id="oldBarReach" value="80"></div>
+        <div class="col"><label>垫圈高度</label><input type="number" id="oldSpacer" value="20"></div>
+        </div>
     </div>
-    <div class="row">
-      <div class="col"><label>车把 Reach</label><input type="number" id="oldBarReach" value="80"></div>
-      <div class="col"><label>垫圈高度</label><input type="number" id="oldSpacer" value="20"></div>
-    </div>
-  </div>
 
-  <div class="panel panel-new">
-    <div class="panel-head">🚀 新车目标 (New)</div>
-    <div class="row">
-      <div class="col">
-        <label>选择规格 (Fixed Rise 54mm)</label>
-        <select id="newProduct">
-          <option value="90" data-phys="102.4" data-ang="14.8" selected>把长 90mm</option>
-          <option value="100" data-phys="113.6" data-ang="11.4">把长 100mm</option>
-          <option value="110" data-phys="122.8" data-ang="9.2">把长 110mm</option>
-          <option value="120" data-phys="131.6" data-ang="7.2">把长 120mm</option>
-        </select>
-      </div>
+    <div class="panel panel-new">
+        <div class="panel-head">🚀 新车目标 (New)</div>
+        <div class="row">
+        <div class="col">
+            <label>选择规格 (Fixed Rise 54mm)</label>
+            <select id="newProduct">
+            <option value="90" data-phys="102.4" data-ang="14.8" selected>把长 90mm</option>
+            <option value="100" data-phys="113.6" data-ang="11.4">把长 100mm</option>
+            <option value="110" data-phys="122.8" data-ang="9.2">把长 110mm</option>
+            <option value="120" data-phys="131.6" data-ang="7.2">把长 120mm</option>
+            </select>
+        </div>
+        </div>
+        <div class="row">
+        <div class="col"><label>新Reach (固定)</label><input type="text" value="70" disabled style="background:#f1f5f9;"></div>
+        <div class="col">
+            <label style="color:#d97706;">模拟新垫圈</label>
+            <input type="number" id="newSpacer" value="10" style="background:#fffbeb; border-color:#fcd34d;">
+        </div>
+        </div>
     </div>
-    <div class="row">
-      <div class="col"><label>新Reach (固定)</label><input type="text" value="70" disabled style="background:#f1f5f9;"></div>
-      <div class="col">
-        <label style="color:#d97706;">模拟新垫圈</label>
-        <input type="number" id="newSpacer" value="10" style="background:#fffbeb; border-color:#fcd34d;">
-      </div>
-    </div>
-  </div>
+</div>
 
   <div class="result-box">
     <div class="res-card">
-      <div>↕️ 垂直高度</div>
+      <div>↕️ 垂直高度 (Stack)</div>
       <div class="res-num" id="resStack">--</div>
       <span class="badge" id="badgeStack">--</span>
+      <div class="cm-tip" id="cmTipStack"></div>
     </div>
     <div class="res-card">
-      <div>↔️ 前伸距离</div>
+      <div>↔️ 前伸距离 (Reach)</div>
       <div class="res-num" id="resReach">--</div>
       <span class="badge" id="badgeReach">--</span>
+      <div class="cm-tip" id="cmTipReach"></div>
     </div>
   </div>
 
   <div class="explain">
-    <div class="explain-h">🤔 怎么算的？(数据实时对应)</div>
     
-    <div style="margin-top:15px; font-weight:600;">1. 垂直高度 (Stack)</div>
-    <div class="calc-row">
-      <span class="calc-label">旧车 = 垫圈 + 把立抬升</span>
-      <span class="calc-val">
-        <span class="dynamic-val" id="txtOldSpacer">20</span> + 
-        <span class="dynamic-val" id="txtOldStemRise">20</span> ≈ 
-        <span id="txtOldTotalH">40</span>mm
-      </span>
+    <div class="explain-h">
+        <span>1. 高度明细 (Stack)</span>
+        <span style="font-size:0.75em; color:#64748b; font-weight:400;">单位: mm</span>
     </div>
-    <div class="calc-row">
-      <span class="calc-label">新车 = 新垫圈 + 固定54</span>
-      <span class="calc-val">
-        <span class="dynamic-val" id="txtNewSpacer">10</span> + 54 = 
-        <span id="txtNewTotalH">64</span>mm
-      </span>
+    <div class="bill-grid">
+        <div class="bill-col">
+            <div class="bill-title">Old 旧车</div>
+            <div class="bill-row">
+                <span class="bill-label">垫圈高度</span>
+                <span class="bill-val highlight-val" id="txtOldSpacer">20</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">把立抬升</span>
+                <span class="bill-val highlight-val" id="txtOldStemRise">20</span>
+            </div>
+            <div class="bill-note">因头管倾斜,自然抬高约2cm</div>
+            <div class="bill-total">
+                <span>合计</span>
+                <span id="txtOldTotalH">40</span>
+            </div>
+        </div>
+        
+        <div class="bill-divider"></div>
+
+        <div class="bill-col">
+            <div class="bill-title" style="color:#3b82f6;">New 新车</div>
+            <div class="bill-row">
+                <span class="bill-label">新垫圈</span>
+                <span class="bill-val highlight-val" id="txtNewSpacer">10</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">车把抬升</span>
+                <span class="bill-val" style="color:#3b82f6;">54</span>
+            </div>
+            <div class="bill-note">产品固定参数</div>
+            <div class="bill-total" style="color:#3b82f6;">
+                <span>合计</span>
+                <span id="txtNewTotalH">64</span>
+            </div>
+        </div>
     </div>
 
-    <div style="margin-top:15px; font-weight:600;">2. 前伸距离 (Reach)</div>
-    <div class="calc-row">
-      <span class="calc-label">旧车 = 水平把立 + Reach</span>
-      <span class="calc-val">
-        <span class="dynamic-val" id="txtOldStemRun">98</span> + 
-        <span class="dynamic-val" id="txtOldReach">80</span> = 
-        <span id="txtOldTotalR">178</span>mm
-      </span>
+    <div style="height:1px; background:#f1f5f9; margin:20px 0;"></div>
+
+    <div class="explain-h">
+        <span>2. 距离明细 (Reach)</span>
+        <span style="font-size:0.75em; color:#64748b; font-weight:400;">单位: mm</span>
     </div>
-    <div class="calc-row">
-      <span class="calc-label">新车 = 水平折算 + 70</span>
-      <span class="calc-val">
-        <span class="dynamic-val" id="txtNewStemRun">109</span> + 70 = 
-        <span id="txtNewTotalR">179</span>mm
-      </span>
+    <div class="bill-grid" style="margin-bottom:0;">
+        <div class="bill-col">
+            <div class="bill-title">Old 旧车</div>
+            <div class="bill-row">
+                <span class="bill-label">把立水平长</span>
+                <span class="bill-val highlight-val" id="txtOldStemRun">98</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">车把Reach</span>
+                <span class="bill-val highlight-val" id="txtOldReach">80</span>
+            </div>
+            <div class="bill-total">
+                <span>合计</span>
+                <span id="txtOldTotalR">178</span>
+            </div>
+        </div>
+        
+        <div class="bill-divider"></div>
+
+        <div class="bill-col">
+            <div class="bill-title" style="color:#3b82f6;">New 新车</div>
+            <div class="bill-row">
+                <span class="bill-label">水平折算长</span>
+                <span class="bill-val highlight-val" id="txtNewStemRun">109</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">车把Reach</span>
+                <span class="bill-val" style="color:#3b82f6;">70</span>
+            </div>
+            <div class="bill-total" style="color:#3b82f6;">
+                <span>合计</span>
+                <span id="txtNewTotalR">179</span>
+            </div>
+        </div>
     </div>
 
   </div>
@@ -142,7 +208,7 @@
     newProduct: document.getElementById('newProduct')
   };
 
-  // 获取解释区的所有文本坑位 (用于更新显示)
+  // 获取解释区的所有文本坑位
   const txt = {
     oldSpacer: document.getElementById('txtOldSpacer'),
     oldStemRise: document.getElementById('txtOldStemRise'),
@@ -154,7 +220,11 @@
     oldReach: document.getElementById('txtOldReach'),
     oldTotalR: document.getElementById('txtOldTotalR'),
     newStemRun: document.getElementById('txtNewStemRun'),
-    newTotalR: document.getElementById('txtNewTotalR')
+    newTotalR: document.getElementById('txtNewTotalR'),
+
+    // 新增厘米提示
+    cmTipStack: document.getElementById('cmTipStack'),
+    cmTipReach: document.getElementById('cmTipReach')
   };
 
   // 绑定事件
@@ -169,7 +239,6 @@
     const oldS = parseFloat(inputs.oldSpacer.value) || 0;
     const newS = parseFloat(inputs.newSpacer.value) || 0;
 
-    // 取新产品规格
     const sel = inputs.newProduct.options[inputs.newProduct.selectedIndex];
     const newPhysLen = parseFloat(sel.getAttribute('data-phys'));
     const newPhysAng = parseFloat(sel.getAttribute('data-ang'));
@@ -180,36 +249,36 @@
     let factor = 0.2;
     if (oldA <= -15) factor = 0.02; // -17度把立平的
     if (oldA >= 0) factor = 0.35;   // 正角度把立很高
+    
     const oldStemRiseVal = Math.round(oldL * factor);
     const oldTotalH = oldS + oldStemRiseVal;
 
     // 新车高度：垫圈 + 54 (死数)
     const newTotalH = newS + 54;
 
-    // 旧车Reach：把立水平(约0.98) + 车把Reach
+    // 旧车Reach
     const oldStemRunVal = Math.round(oldL * 0.98);
     const oldTotalR = oldStemRunVal + oldR;
 
-    // 新车Reach：物理长*cos(物理角) + 70
+    // 新车Reach
     const newStemRunVal = Math.round(newPhysLen * Math.cos(newPhysAng * Math.PI/180));
     const newTotalR = newStemRunVal + 70;
 
     // --- 3. 更新结果大卡片 ---
-    updateBadge('resStack', 'badgeStack', newTotalH - oldTotalH, 'mm');
-    updateBadge('resReach', 'badgeReach', newTotalR - oldTotalR, 'mm');
+    updateBadge('resStack', 'badgeStack', newTotalH - oldTotalH, 'mm', 'cmTipStack');
+    updateBadge('resReach', 'badgeReach', newTotalR - oldTotalR, 'mm', 'cmTipReach');
 
-    // --- 4. 更新底部解释区 (这是你最关心的部分) ---
-    // 这里把计算过程中的每个数字都填回到 HTML 里
+    // --- 4. 更新账单 (Bill) ---
     
-    // Stack 部分
-    txt.oldSpacer.innerText = oldS;          // 显示你的垫圈输入
-    txt.oldStemRise.innerText = oldStemRiseVal; // 显示算出来的把立高度
-    txt.oldTotalH.innerText = oldTotalH;     // 旧车总高
+    // Stack 账单
+    txt.oldSpacer.innerText = oldS;
+    txt.oldStemRise.innerText = oldStemRiseVal;
+    txt.oldTotalH.innerText = oldTotalH;
     
-    txt.newSpacer.innerText = newS;          // 显示你的新垫圈输入
-    txt.newTotalH.innerText = newTotalH;     // 新车总高
+    txt.newSpacer.innerText = newS;
+    txt.newTotalH.innerText = newTotalH;
 
-    // Reach 部分
+    // Reach 账单
     txt.oldStemRun.innerText = oldStemRunVal;
     txt.oldReach.innerText = oldR;
     txt.oldTotalR.innerText = oldTotalR;
@@ -218,12 +287,19 @@
     txt.newTotalR.innerText = newTotalR;
   }
 
-  function updateBadge(idNum, idBadge, val, unit) {
+  function updateBadge(idNum, idBadge, val, unit, idCmTip) {
     const elNum = document.getElementById(idNum);
     const elBadge = document.getElementById(idBadge);
+    const elCm = document.getElementById(idCmTip);
     
-    elNum.innerText = Math.abs(val).toFixed(0); // 取整显示更清爽
+    const absVal = Math.abs(val).toFixed(0);
+    const sign = val > 0 ? "+" : val < 0 ? "-" : "";
+    elNum.innerText = `${sign}${absVal}`;
     
+    // 显示厘米提示
+    const cmVal = (Math.abs(val) / 10).toFixed(1);
+    elCm.innerText = `≈ ${cmVal} cm`;
+
     if (Math.abs(val) < 2) {
       elBadge.innerText = "基本不变";
       elBadge.className = "badge";
