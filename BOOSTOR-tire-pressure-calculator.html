@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BOOSTOR 胎压计算器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #3b82f6;
+      --bg: #f8fafc;
+      --radius: 12px;
+      --danger: #ef4444;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      color: #334155;
+      margin: 0;
+      padding: 20px 12px;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    h2 { text-align: center; color: var(--primary); margin: 4px 0 8px; }
+    .subhead { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+
+    .panel-group { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+    @media (max-width: 860px) {
+      .panel-group { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--radius);
+      border: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .panel-new { border-top: 4px solid var(--accent); }
+    .panel-head {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 15px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+
+    .row { display: flex; gap: 15px; margin-bottom: 14px; }
+    .col { flex: 1; }
+    @media (max-width: 600px) { .row { flex-direction: column; } }
+    label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 600;
+      color: var(--primary);
+      background: #fff;
+    }
+    .radio-group { display: flex; gap: 10px; padding-top: 4px; }
+    .radio {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .hint { font-size: 0.75rem; color: #94a3b8; margin-top: 6px; }
+    .invalid { border-color: var(--danger); background: #fef2f2; }
+    .invalid-msg { color: #b91c1c; font-weight: 600; font-size: 0.85rem; }
+
+    .btn {
+      width: 100%;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .result-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .res-card {
+      background: var(--primary);
+      color: #fff;
+      padding: 15px;
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .res-num { font-size: 2rem; font-weight: 800; line-height: 1.1; margin: 10px 0; }
+    .res-sub { font-size: 0.85rem; color: #cbd5e1; }
+
+    .warning {
+      margin-top: 12px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .note-box {
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      padding: 12px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      color: #334155;
+    }
+    .hide { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>BOOSTOR 胎压计算器</h2>
+    <div class="subhead">核心计算器（输入 + 前/后轮胎压）</div>
+
+    <div class="panel-group">
+      <div class="panel">
+        <div class="panel-head">输入</div>
+
+        <div class="row">
+          <div class="col">
+            <label>系统总重量（骑手 + 自行车 + 装备）</label>
+            <input type="number" id="weight" placeholder="请输入重量" min="0" step="0.1" />
+            <div class="hint">有效范围：34 - 205 kg（75 - 450 磅）</div>
+          </div>
+          <div class="col">
+            <label>单位</label>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="weight-unit" value="lbs" checked /> lbs（磅）</label>
+              <label class="radio"><input type="radio" name="weight-unit" value="kg" /> kg（千克）</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>路面状况</label>
+            <select id="surface-condition">
+              <option value="null" selected>请选择</option>
+              <option value="track-indoor-wood">场地（室内木地板）</option>
+              <option value="track-outdoor-wood">场地（室外混凝土）</option>
+              <option value="new-pavement">新铺路面</option>
+              <option value="worn-pavement">磨损路面 / 有些裂缝</option>
+              <option value="cat1-gravel">1 类砂石</option>
+              <option value="poor-pavement">较差路面 / 碎石封层</option>
+              <option value="cat2-gravel">2 类砂石</option>
+              <option value="cobblestone">鹅卵石</option>
+              <option value="cat3-gravel">3 类砂石</option>
+              <option value="cat4-gravel">4 类砂石</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>测量胎宽（mm）</label>
+            <select id="tire-width">
+              <option value="null" selected>请选择</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>车轮直径</label>
+            <select id="tire-diameter">
+              <option value="null" selected>请选择</option>
+              <option value="622">700C/29"</option>
+              <option value="571">650C</option>
+              <option value="584">650B/27.5"</option>
+              <option value="559">26"</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>轮胎类型</label>
+            <select id="tire-type">
+              <option value="null" selected>请选择</option>
+              <option value="high-perf-tubeless-latex">高性能轮胎（真空/乳胶内胎）</option>
+              <option value="mid-range-tubeless-latex">中档胎体（真空/乳胶内胎）</option>
+              <option value="mid-range-butyl">中档胎体（丁基内胎）</option>
+              <option value="puncture-resistant-tubeless-latex">防刺轮胎（真空/乳胶内胎）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>平均速度（mph）</label>
+            <select id="speed">
+              <option value="null" selected>请选择</option>
+              <option value="14">休闲骑</option>
+              <option value="15.5">快速单轨</option>
+              <option value="17.5">中等强度团骑</option>
+              <option value="19.5">快速团骑</option>
+              <option value="21.5">一级/二级/三级比赛</option>
+              <option value="24">职业巡回赛</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>重量分配</label>
+            <select id="weightDist">
+              <option value="null" selected>请选择</option>
+              <option value="tr-tt-track">50/50（铁人三项/计时/场地车）</option>
+              <option value="road">48/52（公路车）</option>
+              <option value="gravel">47/53（砂石车）</option>
+              <option value="mountain">46.5/53.5（山地车）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <button class="btn" id="submit" type="button">计算</button>
+            <div class="invalid-msg hide" id="invalid-form-text">请补全缺失项并输入有效值。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-new">
+        <div class="panel-head">结果</div>
+        <div class="result-box">
+          <div class="res-card">
+            <div>前轮</div>
+            <div class="res-num" id="front-psi">--</div>
+            <div class="res-sub">BAR <span id="front-bar">--</span></div>
+          </div>
+          <div class="res-card">
+            <div>后轮</div>
+            <div class="res-num" id="rear-psi">--</div>
+            <div class="res-sub">BAR <span id="rear-bar">--</span></div>
+          </div>
+        </div>
+        <div id="hookless-warning" class="warning hide">如果你使用无钩/真空直边轮圈，请考虑使用更宽的轮胎。它们安全使用的上限为 72 psi。</div>
+        <div id="pinch-flat-rec" class="note-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inputs = {
+      weight: document.getElementById("weight"),
+      weightUnits: document.getElementsByName("weight-unit"),
+      surface: document.getElementById("surface-condition"),
+      tireWidth: document.getElementById("tire-width"),
+      tireDiameter: document.getElementById("tire-diameter"),
+      tireType: document.getElementById("tire-type"),
+      speed: document.getElementById("speed"),
+      weightDist: document.getElementById("weightDist")
+    };
+
+    const outputs = {
+      frontPsi: document.getElementById("front-psi"),
+      rearPsi: document.getElementById("rear-psi"),
+      frontBar: document.getElementById("front-bar"),
+      rearBar: document.getElementById("rear-bar"),
+      hooklessWarning: document.getElementById("hookless-warning"),
+      pinchFlat: document.getElementById("pinch-flat-rec"),
+      invalidMsg: document.getElementById("invalid-form-text")
+    };
+
+    function addMeasuredTireOptions() {
+      const select = inputs.tireWidth;
+      for (let i = 20; i <= 65; i += 1) {
+        const option = document.createElement("option");
+        option.value = String(i);
+        option.text = i + "mm";
+        select.add(option);
+      }
+    }
+
+    function getWeightKg() {
+      const weightVal = parseFloat(inputs.weight.value);
+      if (Number.isNaN(weightVal)) return NaN;
+      const useLbs = inputs.weightUnits[0].checked;
+      return useLbs ? weightVal * 0.453592 : weightVal;
+    }
+
+    function validateForm() {
+      let valid = true;
+      const weightKg = getWeightKg();
+
+      const requiredSelects = [
+        inputs.surface,
+        inputs.tireWidth,
+        inputs.tireDiameter,
+        inputs.tireType,
+        inputs.speed,
+        inputs.weightDist
+      ];
+
+      if (!Number.isFinite(weightKg) || weightKg <= 0) {
+        inputs.weight.classList.add("invalid");
+        valid = false;
+      } else {
+        inputs.weight.classList.remove("invalid");
+      }
+
+      if (weightKg < 34 || weightKg > 205) {
+        inputs.weight.classList.add("invalid");
+        valid = false;
+      }
+
+      requiredSelects.forEach((el) => {
+        if (el.value === "null") {
+          el.classList.add("invalid");
+          valid = false;
+        } else {
+          el.classList.remove("invalid");
+        }
+      });
+
+      outputs.invalidMsg.classList.toggle("hide", valid);
+      return valid;
+    }
+
+    function calculateK1(surface) {
+      switch (surface) {
+        case "track-indoor-wood": return 354;
+        case "track-outdoor-wood": return 294;
+        case "new-pavement": return 261;
+        case "worn-pavement": return 246.5;
+        case "cat1-gravel": return 235.5;
+        case "poor-pavement": return 225;
+        case "cat2-gravel": return 212.5;
+        case "cobblestone": return 199;
+        case "cat3-gravel": return 187;
+        case "cat4-gravel": return 170;
+        default: return 0;
+      }
+    }
+
+    function calcCPP(K, width, diameter) {
+      const num = ((-0.00006 * (width ** 3)) + (0.0079 * (width ** 2)) - (0.4102 * width) + 12.725) * (-226.44);
+      const denom = (((((-0.5 * 9.81) / (K * (20 / width))) + (width + (diameter / 2))) ** 2) - ((width + (diameter / 2)) ** 2));
+      return num / denom;
+    }
+
+    function calcSpeedCoeff(speed) {
+      const y0 = 10, x0 = 0.97, y1 = 33, x1 = 1.03;
+      const num = (x1 * speed) - (x1 * y0) - (x0 * speed) + (x0 * y0) + (y1 * x0) - (x0 * y0);
+      const denom = y1 - y0;
+      return num / denom;
+    }
+
+    function calcWeightDist(dist) {
+      switch (dist) {
+        case "tr-tt-track": return { front: 1, back: 1 };
+        case "road": return { front: 0.985, back: 1.01 };
+        case "gravel": return { front: 0.975, back: 1.02 };
+        case "mountain": return { front: 0.97, back: 1.03 };
+        default: return { front: 0, back: 0 };
+      }
+    }
+
+    function calcTireType(type) {
+      switch (type) {
+        case "high-perf-tubeless-latex": return { front: 1, back: 1 };
+        case "mid-range-tubeless-latex": return { front: 0.97, back: 0.97 };
+        case "mid-range-butyl": return { front: 0.94, back: 0.94 };
+        case "puncture-resistant-tubeless-latex": return { front: 0.91, back: 0.91 };
+        default: return { front: 0, back: 0 };
+      }
+    }
+
+    function round(value, precision) {
+      const multiplier = Math.pow(100, precision || 0) / 5;
+      return Math.round(value * multiplier) / multiplier;
+    }
+
+    function roundHalf(num) {
+      return Math.round(num * 2) / 2;
+    }
+
+    function resetResults() {
+      outputs.frontPsi.textContent = "--";
+      outputs.rearPsi.textContent = "--";
+      outputs.frontBar.textContent = "--";
+      outputs.rearBar.textContent = "--";
+      outputs.hooklessWarning.classList.add("hide");
+      outputs.pinchFlat.textContent = "";
+    }
+
+    function runCalc() {
+      if (!validateForm()) {
+        resetResults();
+        return;
+      }
+
+      const weightKg = getWeightKg();
+      const width = Number(inputs.tireWidth.value);
+      const diameter = Number(inputs.tireDiameter.value);
+      const speed = Number(inputs.speed.value);
+      const surface = inputs.surface.value;
+
+      const K1 = calculateK1(surface);
+      const K = 0.5 * (weightKg - 50) + K1;
+      const CPP = calcCPP(K, width, diameter);
+      const speedCoeff = calcSpeedCoeff(speed);
+      const weightDist = calcWeightDist(inputs.weightDist.value);
+      const tireType = calcTireType(inputs.tireType.value);
+
+      const finalFront = (CPP * speedCoeff * weightDist.front) * tireType.front;
+      const finalBack = (CPP * speedCoeff * weightDist.back) * tireType.back;
+
+      outputs.frontPsi.textContent = roundHalf(finalFront).toFixed(1).replace(".0", "");
+      outputs.rearPsi.textContent = roundHalf(finalBack).toFixed(1).replace(".0", "");
+      outputs.frontBar.textContent = round(finalFront * 0.0689476, 1).toFixed(2).replace(/0$/, "");
+      outputs.rearBar.textContent = round(finalBack * 0.0689476, 1).toFixed(2).replace(/0$/, "");
+
+      const frontPsi = roundHalf(finalFront);
+      const rearPsi = roundHalf(finalBack);
+      if (frontPsi > 70 || rearPsi > 70) {
+        outputs.hooklessWarning.classList.remove("hide");
+      } else {
+        outputs.hooklessWarning.classList.add("hide");
+      }
+
+      // Pinch flat risk helper
+      const speedVal = speed * 0.44704; // mph to m/s
+      const KE = 0.5 * weightKg * (speedVal ** 2);
+      const RE = 0.5 * (0.8 * width) * (Math.sqrt(((K) ** 2) - ((0.8 * width) ** 2)));
+      const Wnum1 = -2.56 * (K ** 2);
+      const Wsqrtnum2 = 6.5536 * (K ** 4);
+      const Wsqrtnum3 = 6.5536 * (-160000 - (800 * weightKg * (speedVal ** 2)) - ((weightKg ** 2) * (speedVal ** 4)));
+      const Wnum = Wnum1 + Math.sqrt(Wsqrtnum2 + Wsqrtnum3);
+      const W = Math.sqrt(-Wnum / 3.2768);
+      const PF = 2 * RE - KE;
+
+      const PNewNum = Math.sqrt((((25 * (weightKg ** 2) * (speedVal ** 4)) + (20000 * weightKg * (speedVal ** 2)) + 400000) / (64 * (width ** 2))) + (0.64 * (width ** 2)));
+      const PNewDenom = K;
+      const PfrontNew = (PNewNum / PNewDenom) * finalFront;
+      const PbackNew = (PNewNum / PNewDenom) * finalBack;
+
+      if (PF >= -500 && PF <= 0) {
+        outputs.pinchFlat.innerHTML =
+          "你的选择会使夹胎爆胎风险增加。 " +
+          "推荐测得胎宽：<strong>" + Math.ceil(W) + "mm</strong>。<br><br>" +
+          "若无法实现，可考虑非最优胎压：前轮 <strong>" +
+          roundHalf(PfrontNew) + " PSI</strong>，后轮 <strong>" +
+          roundHalf(PbackNew) + " PSI</strong>。";
+      } else if (PF < -500) {
+        outputs.pinchFlat.innerHTML =
+          "你的选择会使夹胎爆胎风险极高。 " +
+          "推荐测得胎宽：<strong>" + Math.ceil(W) + "mm</strong>。<br><br>" +
+          "若无法实现，可考虑非最优胎压：前轮 <strong>" +
+          roundHalf(PfrontNew) + " PSI</strong>，后轮 <strong>" +
+          roundHalf(PbackNew) + " PSI</strong>。";
+      } else {
+        outputs.pinchFlat.textContent = "";
+      }
+    }
+
+    document.getElementById("submit").addEventListener("click", runCalc);
+    Object.values(inputs).forEach((el) => {
+      if (el && el.addEventListener) {
+        el.addEventListener("change", runCalc);
+        el.addEventListener("input", runCalc);
+      }
+    });
+
+    addMeasuredTireOptions();
+  </script>
+</body>
+</html>
