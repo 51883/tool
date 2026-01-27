@@ -240,8 +240,7 @@
     const newS = parseFloat(inputs.newSpacer.value) || 0;
 
     const sel = inputs.newProduct.options[inputs.newProduct.selectedIndex];
-    const newPhysLen = parseFloat(sel.getAttribute('data-phys'));
-    const newPhysAng = parseFloat(sel.getAttribute('data-ang'));
+    const newStemLen = parseFloat(sel.value) || 0;
 
     // --- 2. 计算 (积木逻辑) ---
     
@@ -257,11 +256,11 @@
     const newTotalH = newS + 54 + 8;
 
     // 旧车Reach
-    const oldStemRunVal = Math.round(oldL * 0.98);
+    const oldStemRunVal = oldL;
     const oldTotalR = oldStemRunVal + oldR;
 
     // 新车Reach
-    const newStemRunVal = Math.round(newPhysLen * Math.cos(newPhysAng * Math.PI/180));
+    const newStemRunVal = newStemLen;
     const newTotalR = newStemRunVal + 70;
 
     // --- 3. 更新结果大卡片 ---
@@ -303,7 +302,6 @@
     if (Math.abs(val) < 2) {
       elBadge.innerText = "基本不变";
       elBadge.className = "badge";
-      elBadge.style.background = "rgba(255,255,255,0.2)";
     } else if (val > 0) {
       elBadge.innerText = `增加 ${Math.abs(val).toFixed(0)}${unit}`;
       elBadge.className = "badge badge-green";
