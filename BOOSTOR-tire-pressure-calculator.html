@@ -282,8 +282,8 @@
     function getWeightKg() {
       const weightVal = parseFloat(inputs.weight.value);
       if (Number.isNaN(weightVal)) return NaN;
-      const useLbs = inputs.weightUnits[0].checked;
-      return useLbs ? weightVal * 0.453592 : weightVal;
+      const selectedUnit = Array.from(inputs.weightUnits).find((unit) => unit.checked)?.value;
+      return selectedUnit === "lbs" ? weightVal * 0.453592 : weightVal;
     }
 
     function validateForm() {
