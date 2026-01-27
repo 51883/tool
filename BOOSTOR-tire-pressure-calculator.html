@@ -139,8 +139,8 @@
           <div class="col">
             <label>单位</label>
             <div class="radio-group">
-              <label class="radio"><input type="radio" name="weight-unit" value="lbs" checked /> lbs（磅）</label>
-              <label class="radio"><input type="radio" name="weight-unit" value="kg" /> kg（千克）</label>
+              <!-- <label class="radio"><input type="radio" name="weight-unit" value="lbs" checked /> lbs（磅）</label> -->
+              <label class="radio"><input type="radio" name="weight-unit" value="kg" checked /> kg（千克）</label>
             </div>
           </div>
         </div>
@@ -152,14 +152,14 @@
               <option value="null" selected>请选择</option>
               <option value="track-indoor-wood">场地（室内木地板）</option>
               <option value="track-outdoor-wood">场地（室外混凝土）</option>
-              <option value="new-pavement">新铺路面</option>
+              <option value="new-pavement">良好铺装路面</option>
               <option value="worn-pavement">磨损路面 / 有些裂缝</option>
-              <option value="cat1-gravel">1 类砂石</option>
+              <option value="cat1-gravel">非铺装硬化路面</option>
               <option value="poor-pavement">较差路面 / 碎石封层</option>
-              <option value="cat2-gravel">2 类砂石</option>
-              <option value="cobblestone">鹅卵石</option>
-              <option value="cat3-gravel">3 类砂石</option>
-              <option value="cat4-gravel">4 类砂石</option>
+              <option value="cat2-gravel">非铺装碎石路面</option>
+              <option value="cobblestone">鹅卵石路面</option>
+              <option value="cat3-gravel">非铺装机化路面</option>
+              <option value="cat4-gravel">非铺装轻度XC</option>
             </select>
           </div>
           <div class="col">
@@ -185,10 +185,11 @@
             <label>轮胎类型</label>
             <select id="tire-type">
               <option value="null" selected>请选择</option>
-              <option value="high-perf-tubeless-latex">高性能轮胎（真空/乳胶内胎）</option>
-              <option value="mid-range-tubeless-latex">中档胎体（真空/乳胶内胎）</option>
+              <option value="high-perf-boostor">高性能轮胎（BOOSTOR内胎）</option>
+              <option value="high-perf-tubeless-latex">高性能轮胎（真空/TPU内胎）</option>
+              <option value="mid-range-tubeless-latex">中档胎体（真空/TPU内胎）</option>
               <option value="mid-range-butyl">中档胎体（丁基内胎）</option>
-              <option value="puncture-resistant-tubeless-latex">防刺轮胎（真空/乳胶内胎）</option>
+              <option value="puncture-resistant-tubeless-latex">防刺轮胎（真空/TPU内胎）</option>
             </select>
           </div>
         </div>
@@ -199,7 +200,7 @@
             <select id="speed">
               <option value="null" selected>请选择</option>
               <option value="14">休闲骑</option>
-              <option value="15.5">快速单轨</option>
+              <option value="15.5">快速单人</option>
               <option value="17.5">中等强度团骑</option>
               <option value="19.5">快速团骑</option>
               <option value="21.5">一级/二级/三级比赛</option>
@@ -212,7 +213,7 @@
               <option value="null" selected>请选择</option>
               <option value="tr-tt-track">50/50（铁人三项/计时/场地车）</option>
               <option value="road">48/52（公路车）</option>
-              <option value="gravel">47/53（砂石车）</option>
+              <option value="gravel">47/53（砾石车）</option>
               <option value="mountain">46.5/53.5（山地车）</option>
             </select>
           </div>
@@ -365,6 +366,7 @@
     function calcTireType(type) {
       switch (type) {
         case "high-perf-tubeless-latex": return { front: 1, back: 1 };
+        case "high-perf-boostor": return { front: 1, back: 1 };
         case "mid-range-tubeless-latex": return { front: 0.97, back: 0.97 };
         case "mid-range-butyl": return { front: 0.94, back: 0.94 };
         case "puncture-resistant-tubeless-latex": return { front: 0.91, back: 0.91 };
@@ -407,10 +409,12 @@
       const CPP = calcCPP(K, width, diameter);
       const speedCoeff = calcSpeedCoeff(speed);
       const weightDist = calcWeightDist(inputs.weightDist.value);
-      const tireType = calcTireType(inputs.tireType.value);
+      const tireTypeValue = inputs.tireType.value;
+      const tireType = calcTireType(tireTypeValue);
+      const boostorOffset = tireTypeValue === "high-perf-boostor" ? 2 : 0;
 
-      const finalFront = (CPP * speedCoeff * weightDist.front) * tireType.front;
-      const finalBack = (CPP * speedCoeff * weightDist.back) * tireType.back;
+      const finalFront = (CPP * speedCoeff * weightDist.front) * tireType.front + boostorOffset;
+      const finalBack = (CPP * speedCoeff * weightDist.back) * tireType.back + boostorOffset;
 
       outputs.frontPsi.textContent = roundHalf(finalFront).toFixed(1).replace(".0", "");
       outputs.rearPsi.textContent = roundHalf(finalBack).toFixed(1).replace(".0", "");
