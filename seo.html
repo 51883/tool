@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PFP 关键词市场机会挖掘工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f3f4f6; }
+        .tag-active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .tag-inactive { background-color: white; color: #374151; border-color: #e5e7eb; }
+        .tag-inactive:hover { background-color: #f9fafb; border-color: #d1d5db; }
+        .trend-spark { display: grid; grid-auto-flow: column; align-items: end; gap: 2px; height: 28px; min-width: 84px; }
+        .trend-spark span { width: 4px; background: #93c5fd; border-radius: 2px; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="mx-auto space-y-6">
+        
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">SEO 关键词聚类与机会挖掘</h1>
+                <p class="text-sm text-gray-500 mt-1">上传 CSV，自动识别维度，发现低竞争高流量机会。</p>
+            </div>
+            <div>
+                <input type="file" id="csvFileInput" accept=".csv" class="hidden" />
+                <label for="csvFileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-md flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    上传 CSV 文件
+                </label>
+            </div>
+        </div>
+
+        <div id="statsSection" class="grid grid-cols-1 md:grid-cols-4 gap-4 hidden">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="text-sm text-gray-500">总关键词数</div>
+                <div class="text-3xl font-bold text-gray-800" id="totalKeywords">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="text-sm text-gray-500">已分类 / 未分类</div>
+                <div class="flex items-end gap-2">
+                    <div class="text-3xl font-bold text-green-600" id="classifiedCount">0</div>
+                    <div class="text-sm text-gray-400 mb-1">/ <span id="unclassifiedCount" class="text-red-500 font-bold">0</span></div>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="text-sm text-gray-500">潜在总流量 (Volume)</div>
+                <div class="text-3xl font-bold text-blue-600" id="totalVolume">0</div>
+            </div>
+            <div class="bg-cursor-pointer hover:bg-yellow-50 transition cursor-pointer bg-yellow-50 p-5 rounded-xl shadow-sm border border-yellow-200 ring-2 ring-yellow-400 ring-opacity-50" onclick="applyOpportunityFilter()">
+                <div class="text-sm text-yellow-800 font-bold">黄金机会 (Low KD, High Vol)</div>
+                <div class="text-3xl font-bold text-yellow-600" id="opportunityCount">0</div>
+                <div class="text-xs text-yellow-700 mt-1">KD < 15 & Vol > 200</div>
+            </div>
+        </div>
+
+        <div id="contentGrid" class="hidden grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-6">
+            <div id="filterSection" class="space-y-3">
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="style">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('style')">
+                        <span>风格维度 (Style)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="style"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="styleTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="aesthetic">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('aesthetic')">
+                        <span>风格流派 (Aesthetic/Genre)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="aesthetic"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="aestheticTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="asset">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('asset')">
+                        <span>素材类型 (Asset Type)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="asset"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="assetTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="platform">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('platform')">
+                        <span>平台维度 (Platform)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="platform"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="platformTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="relation">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('relation')">
+                        <span>关系维度 (Relation)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="relation"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="relationTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="question">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('question')">
+                        <span>问题分类 (Question)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="question"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="questionTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="tool">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('tool')">
+                        <span>工具分类 (Tool)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="tool"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="toolTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="action">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('action')">
+                        <span>意图/动作 (Action)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="action"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="actionTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="audience">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('audience')">
+                        <span>受众/难度 (Audience)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="audience"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="audienceTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="modifier">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('modifier')">
+                        <span>修饰词 (Modifier)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="modifier"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="modifierTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="format">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('format')">
+                        <span>内容形式/文件类型 (Format)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="format"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="formatTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="occasion">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('occasion')">
+                        <span>时间场景 (Occasion)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="occasion"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="occasionTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="origin">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('origin')">
+                        <span>IP 来源 (Origin)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="origin"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="originTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="mood">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('mood')">
+                        <span>情绪 (Mood)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="mood"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2" id="moodTags"></div>
+                </details>
+
+                <details class="bg-white p-4 rounded-xl shadow-sm border border-gray-200" data-category="subject">
+                    <summary class="flex items-center justify-between text-sm font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-500 list-none select-none" onclick="filterByCategory('subject')">
+                        <span>角色/主题 (Subject)</span>
+                        <span class="ml-2 text-xs text-gray-400 font-normal" data-stat="subject"></span>
+                    </summary>
+                    <div class="pt-3 flex flex-wrap gap-2 max-h-40 overflow-y-auto" id="subjectTags"></div>
+                </details>
+            </div>
+
+            <div id="tableSection" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h2 class="font-bold text-gray-700" id="tableTitle">所有关键词</h2>
+                <button onclick="resetFilters()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">重置筛选</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-100 text-gray-700 font-semibold uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200" onclick="sortTable('keyword')">Keyword</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200" onclick="sortTable('intent')">Intent</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 text-right" onclick="sortTable('volume')">Volume ↕</th>
+                            <th class="px-6 py-3">Trend</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 text-right" onclick="sortTable('kd')">Keyword Difficulty ↕</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 text-right" onclick="sortTable('cpc')">CPC (USD) ↕</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 text-right" onclick="sortTable('competitiveDensity')">Competitive Density ↕</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200" onclick="sortTable('serpFeatures')">SERP Features</th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 text-right" onclick="sortTable('results')">Number of Results ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200" id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+            <div class="p-4 text-center text-gray-400 text-xs" id="tableFooter">
+                显示前 500 条数据
+            </div>
+        </div>
+
+        <div id="unclassifiedSection" class="lg:col-span-2 bg-red-50 p-5 rounded-xl shadow-sm border border-red-100">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-semibold text-red-800 uppercase tracking-wider">未分类数据挖掘</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyUnclassifiedForAI()" class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded hover:bg-red-300">复制给 AI</button>
+                    <button onclick="showUnclassified()" class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded hover:bg-red-300">查看列表</button>
+                </div>
+            </div>
+            <p class="text-xs text-red-600 mb-2">这些词没有命中任何标签，建议从高频词/短语和高流量关键词中寻找新分类线索：</p>
+            <div class="space-y-3">
+                <div class="flex flex-wrap gap-2 text-[11px] text-red-700" id="unclassifiedStats"></div>
+                <div>
+                    <div class="text-[11px] font-semibold text-gray-500 mb-1">AI 提示词</div>
+                    <textarea id="aiPrompt" rows="4" readonly class="w-full text-xs text-gray-700 bg-white/70 border border-red-100 rounded px-2 py-1 leading-relaxed"></textarea>
+                </div>
+                <div>
+                    <div class="text-[11px] font-semibold text-gray-500 mb-1">高频词</div>
+                    <div class="space-y-1 text-xs text-gray-600" id="unclassifiedSuggestions"></div>
+                </div>
+                <div>
+                    <div class="text-[11px] font-semibold text-gray-500 mb-1">高频短语</div>
+                    <div class="space-y-1 text-xs text-gray-600" id="unclassifiedPhrases"></div>
+                </div>
+                <div>
+                    <div class="text-[11px] font-semibold text-gray-500 mb-1">高流量关键词</div>
+                    <div class="space-y-1 text-xs text-gray-600" id="unclassifiedTopVolume"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // === 1. 配置字典 (你可以随时在这里添加新的分类词) ===
+    const dictionaries = {
+        style: ['anime', 'aesthetic', 'cool', 'cute', 'dark', 'funny', 'emo', 'retro', 'pixel', 'art', 'vintage', 'grunge', 'preppy', 'y2k', 'goth', 'minimalist', 'clean', 'soft', 'hard', 'glitch', 'neon', 'pastel', 'manga', 'cartoon', '3d', '4k', 'hd', 'real'],
+        aesthetic: ['cyberpunk', 'vaporwave', 'pixelart', 'minimal', 'realistic', 'abstract', 'vintage', 'retro', 'gothic'],
+        asset: ['vector', 'illustration', 'photo', 'render', '3d', 'line art', 'sketch', 'sprite'],
+        platform: ['discord', 'tiktok', 'steam', 'instagram', 'twitter', 'youtube', 'whatsapp', 'facebook', 'roblox', 'pinterest', 'reddit', 'twitch', 'ps4', 'xbox', 'profile picture', 'pfp for'],
+        relation: ['matching', 'couple', 'friend', 'best friend', 'bestie', 'group', 'duo', 'trio', 'squad', 'family', 'him', 'her', 'bf', 'gf', 'partner', 'twin'],
+        question: ['how', 'where', 'what', 'why', 'when', 'which', 'who'],
+        tool: [
+            'translator', 'generator', 'example', 'convert', 'online',
+            'downloader', 'maker', 'creator', 'editor', 'processor',
+            'designer', 'compiler', 'analyzer', 'evaluator', 'sender',
+            'receiver', 'interpreter', 'uploader', 'calculator', 'sample',
+            'template', 'format', 'builder', 'scheme', 'pattern',
+            'checker', 'detector', 'scraper', 'manager', 'explorer',
+            'dashboard', 'planner', 'tracker', 'recorder', 'optimizer',
+            'scheduler', 'converter', 'viewer', 'extractor', 'monitor',
+            'notifier', 'verifier', 'simulator', 'assistant', 'constructor',
+            'comparator', 'navigator', 'syncer', 'connector', 'cataloger'
+        ],
+        action: [
+            'learn', 'tutorial', 'guide', 'review', 'news', 'history', 'fact',
+            'buy', 'sell', 'compare', 'price', 'best', 'top', 'cheap', 'alternative',
+            'fix', 'repair', 'calculate', 'convert', 'generate', 'edit', 'install',
+            'watch', 'play', 'stream', 'share', 'discuss', 'join'
+        ],
+        format: [
+            'gif', 'animated', 'transparent', 'wallpaper', 'banner', 'header', 'icon', 'sketch', 'sticker',
+            'pdf', 'ebook', 'article', 'blog', 'essay', 'template', 'checklist',
+            'video', 'image', 'infographic', 'podcast', 'audio', 'slides', 'chart',
+            'tool', 'code', 'snippet', 'api', 'plugin', 'extension', 'script',
+            'dataset', 'statistics', 'report', 'survey', 'database'
+        ],
+        audience: [
+            'beginner', 'advanced', 'pro', 'expert', 'kids', 'students',
+            'developers', 'designers', 'managers', 'dummy', 'step by step'
+        ],
+        modifier: [
+            'latest', '2024', '2025', 'daily', 'weekly', 'vintage', 'classic',
+            'free', 'paid', 'premium', 'open source', 'cracked', 'official',
+            'scam', 'legit', 'safe', 'fast', 'easy', 'popular', 'underrated'
+        ],
+        occasion: ['christmas', 'halloween', 'winter', 'summer', 'valentine', 'night', 'birthday'],
+        origin: ['kpop', 'kdrama', 'webtoon', 'manhwa', 'movie', 'meme', 'fanart'],
+        mood: ['sad', 'happy', 'tired', 'angry', 'broken', 'wholesome', 'chill', 'crazy', 'romantic', 'lonely', 'scary'],
+        color: ['black', 'white', 'blue', 'red', 'pink', 'purple', 'green', 'yellow', 'orange', 'brown', 'grey', 'gold', 'silver'],
+        subject: [
+    // --- 通用/动物 (General) ---
+    'cat', 'dog', 'girl', 'boy', 'man', 'woman', 
+    'skull', 'skeleton', 'ghost', 'clown', 'alien', 
+    'demon', 'angel', 'robot', 'witch', 'ninja', 
+    'car', 'gun', 'money', 'bear', 'bunny', 'frog', 'duck', 'panda',
+
+    // --- 动漫/二次元 (Anime & Manga) ---
+    'naruto', 'sasuke', 'kakashi', 'itachi', 'obito', 'madara',
+    'one piece', 'luffy', 'zoro', 'sanji', 'nami', 'chopper', 'ace', 'law', 'shanks',
+    'dragon ball', 'goku', 'vegeta', 'gohan', 'trunks', 'frieza',
+    'bleach', 'ichigo', 'rukia', 'aizen', 'kisuke', 'grimmjow', 'ulquiorra',
+    'jujutsu kaisen', 'jjk', 'gojo', 'sukuna', 'yuji', 'megumi', 'nobara', 'toji', 'geto', 'mahito',
+    'demon slayer', 'tanjiro', 'nezuko', 'zenitsu', 'inosuke', 'rengoku', 'shinobu',
+    'chainsaw man', 'csm', 'denji', 'makima', 'power', 'aki', 'reze', 'pochita',
+    'evangelion', 'shinji', 'rei', 'asuka', 'kaworu',
+    'berserk', 'guts', 'griffith', 'casca',
+    'attack on titan', 'aot', 'eren', 'mikasa', 'levi',
+    'hunter x hunter', 'hxh', 'gon', 'killua', 'hisoka', 'kurapika', 'chrollo',
+    'my hero academia', 'mha', 'deku', 'bakugo', 'todoroki', 'all might',
+    'tokyo ghoul', 'kaneki', 'touka', 'juuzou',
+    'sailor moon', 'usagi',
+    'death note', 'light', 'l', 'misa', 'ryuk',
+    'spy x family', 'anya', 'yor', 'loid',
+    'blue lock', 'isagi', 'bachira', 'nagi', 'rin', 'kaiser', 'sae',
+    'frieren', 'fern', 'stark',
+    'dandadan', 'momo', 'okarun',
+    'oshi no ko', 'ai', 'ruby', 'aqua',
+    'bungo stray dogs', 'bsd', 'dazai', 'chuuya',
+    'jojos bizarre adventure', 'jojo', 'jotaro', 'dio', 'giorno',
+    'monster', 'johan',
+
+    // --- 游戏 (Gaming) ---
+    'minecraft', 'steve', 'alex', 'creeper', 'enderman',
+    'roblox', 'noob', 'guest', 'bacon', 'avatar',
+    'fortnite', 'renegade raider',
+    'genshin impact', 'genshin', 'hu tao', 'zhongli', 'raiden', 'nahida', 'furina', 'xiao', 'scaramouche', 'wanderer',
+    'honkai', 'hsr', 'kafka', 'blade', 'silver wolf', 'firefly',
+    'valorant', 'jett', 'sage', 'reyna', 'viper',
+    'league of legends', 'lol', 'jinx', 'vi', 'ekko', 'ahri', 'akali', 'yasuo',
+    'overwatch', 'dva', 'mercy', 'kiriko', 'genji',
+    'fnaf', 'freddy', 'bonnie', 'chica', 'foxy', 'springtrap', 'purple guy', 'puppet',
+    'undertale', 'sans', 'papyrus', 'frisk', 'chara', 'gaster',
+    'deltarune', 'kris', 'susie', 'ralsei', 'spamton',
+    'mario', 'luigi', 'peach', 'bowser', 'yoshi',
+    'sonic', 'shadow', 'knuckles', 'tails', 'amy', 'eggman',
+    'pokemon', 'pikachu', 'eevee', 'gengar', 'charizard', 'lucario', 'mewtwo',
+    'elden ring', 'malenia', 'ranni',
+    'god of war', 'kratos',
+    'resident evil', 'leon', 'ada', 'jill', 'wesker',
+    'devil may cry', 'dmc', 'dante', 'vergil', 'nero',
+    'metal gear', 'solid snake', 'raiden',
+    'final fantasy', 'cloud', 'sephiroth', 'tifa', 'aerith',
+    'persona', 'joker', 'aigis', 'makoto',
+    'omori', 'sunny', 'kel', 'aubrey', 'basil', 'mari',
+    'project sekai', 'pjsk', 'miku', 'hatsune miku', 'rin', 'len', 'luka',
+    'gorilla tag', 'gtag',
+    'dandys world', 'dandy', 'astro', 'shelly', 'vee', 'pebble',
+    'regretevator', 'pest', 'poob',
+    'cookie run', 'crk', 'gingerbrave',
+    'brawl stars',
+
+    // --- 欧美动画/卡通 (Cartoons) ---
+    'spongebob', 'patrick', 'squidward',
+    'adventure time', 'finn', 'jake', 'marceline', 'bubblegum', 'bmo',
+    'regular show', 'mordecai', 'rigby', 'benson',
+    'gumball', 'darwin',
+    'south park', 'cartman', 'kenny', 'kyle', 'stan', 'butters',
+    'the simpsons', 'homer', 'bart',
+    'family guy', 'peter', 'stewie', 'brian',
+    'rick and morty', 'rick', 'morty',
+    'gravity falls', 'dipper', 'mabel', 'bill cipher',
+    'the owl house', 'luz', 'amity',
+    'amphibia', 'anne',
+    'arcane', 'jinx', 'vi', 'caitlyn', 'jayce', 'viktor', 'mel medarda',
+    'hazbin hotel', 'alastor', 'charlie', 'angel dust', 'husk', 'lucifer', 'vox', 'valentino',
+    'helluva boss', 'blitz', 'stolas', 'loona', 'millie', 'moxxie', 'fizzarolli',
+    'the amazing digital circus', 'tadc', 'pomni', 'jax', 'caine',
+    'murder drones', 'uzi', 'n', 'v', 'j', 'cyn', 'doll',
+    'invincible', 'mark grayson', 'omni man', 'atom eve',
+    'ben 10',
+    'sanrio', 'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin', 'pochacco',
+    'mylittlepony', 'mlp', 'twilight sparkle', 'rainbow dash', 'fluttershy', 'pinkie pie',
+    'winx club', 'bloom', 'stella', 'flora',
+    'avatar the last airbender', 'atla', 'aang', 'zuko', 'katara', 'sokka', 'toph', 'korra',
+    'transformers', 'optimus prime', 'bumblebee', 'megatron', 'starscream',
+    'tmnt', 'ninja turtles', 'leonardo', 'raphael', 'donatello', 'michelangelo',
+    'peppa pig',
+
+    // --- 影视/电影 (Movies & TV) ---
+    'star wars', 'darth vader', 'anakin', 'luke', 'yoda', 'obi wan', 'ahsoka', 'mandalorian', 'baby yoda', 'grogu', 'clone trooper', 'stormtrooper',
+    'marvel', 'mcu', 'spiderman', 'spider-man', 'miles morales', 'gwen', 'venom', 'iron man', 'tony stark', 'captain america', 'thor', 'loki', 'hulk', 'black widow', 'deadpool', 'wolverine', 'doctor doom', 'thanos',
+    'dc', 'batman', 'joker', 'superman', 'wonder woman', 'flash', 'harley quinn', 'robin', 'nightwing', 'red hood',
+    'the boys', 'homelander', 'billy butcher', 'starlight', 'soldier boy',
+    'breaking bad', 'walter white', 'jesse pinkman', 'saul goodman',
+    'better call saul',
+    'the walking dead', 'twd', 'rick grimes', 'daryl', 'negan',
+    'stranger things', 'eleven',
+    'squid game',
+    'american psycho', 'patrick bateman',
+    'fight club', 'tyler durden',
+    'drive', 'ryan gosling',
+    'blade runner',
+    'matrix', 'neo',
+    'harry potter', 'hermione', 'ron', 'draco', 'voldemort',
+    'lord of the rings', 'lotr',
+    'godzilla', 'kong',
+
+    // --- 名人/现实人物 (Real People) ---
+    'kanye', 'ye', 'kanye west',
+    'drake',
+    'travis scott',
+    'playboi carti', 'carti',
+    'kendrick lamar', 'kendrick',
+    'tyler the creator',
+    'juice wrld',
+    'xxxtentacion', 'x',
+    'eminem',
+    'the weeknd',
+    'frank ocean',
+    'sza',
+    'lana del rey',
+    'taylor swift',
+    'billie eilish',
+    'ariana grande',
+    'bts', 'jungkook', 'taehyung', 'jimin',
+    'blackpink', 'lisa', 'jennie', 'jisoo', 'rose',
+    'newjeans', 'haerin', 'hanni', 'minji',
+    'stray kids', 'hyunjin', 'felix',
+    'messi', 'lionel messi',
+    'ronaldo', 'cr7', 'cristiano',
+    'neymar', 'neymar jr',
+    'mbappe',
+    'bellingham',
+    'yamal',
+    'lebron', 'lebron james',
+    'curry', 'steph curry',
+    'jordan', 'michael jordan',
+    'kobe', 'kobe bryant',
+    'durant', 'kd',
+    'ufc', 'conor mcgregor', 'khabib', 'jon jones', 'islam', 'poatan',
+    'ishowspeed', 'speed',
+    'kai cenat',
+    'mrbeast'
+  ]};
+
+    const categoryLabels = {
+        style: '风格维度 (Style)',
+        aesthetic: '风格流派 (Aesthetic/Genre)',
+        asset: '素材类型 (Asset Type)',
+        platform: '平台维度 (Platform)',
+        relation: '关系维度 (Relation)',
+        question: '问题分类 (Question)',
+        tool: '工具分类 (Tool)',
+        action: '意图/动作 (Action)',
+        format: '内容形式/文件类型 (Format)',
+        audience: '受众/难度 (Audience)',
+        modifier: '修饰词 (Modifier)',
+        occasion: '时间场景 (Occasion)',
+        origin: 'IP 来源 (Origin)',
+        mood: '情绪 (Mood)',
+        color: '颜色 (Color)',
+        subject: '角色/主题 (Subject)'
+    };
+
+    const categoryTotals = {};
+    const categoryVolumes = {};
+
+    let allData = [];
+    let currentData = [];
+    let unclassifiedData = [];
+
+    // === 2. CSV 解析与处理 ===
+    document.getElementById('csvFileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                processData(results.data);
+            }
+        });
+    });
+
+    function processData(rawData) {
+        allData = rawData.map(row => {
+            // 字段映射 (兼容不同 CSV 表头)
+            const keyword = row['Keyword'] || row['keyword'] || row['Query'] || '';
+            const volume = parseNumber(row['Volume'] || row['volume'] || row['Search Volume']) ?? 0;
+            const kd = parseNumber(row['Keyword Difficulty'] || row['KD'] || row['Difficulty']) ?? 100; // 默认高难度以防万一
+            const intent = row['Intent'] || row['intent'] || '';
+            const trend = parseTrend(row['Trend'] || row['trend'] || '');
+            const cpc = parseNumber(row['CPC (USD)'] || row['CPC'] || row['Cost Per Click']);
+            const competitiveDensity = parseNumber(row['Competitive Density'] || row['Competition']);
+            const serpFeatures = row['SERP Features'] || row['SERP features'] || row['SERP Feature'] || row['SERP'] || '';
+            const results = parseNumber(row['Number of Results'] || row['Results'] || row['Search Results']);
+
+            if (!keyword) return null;
+
+            // 自动打标
+            const lowerKw = keyword.toLowerCase();
+            const tags = { style: [], aesthetic: [], asset: [], platform: [], relation: [], question: [], tool: [], action: [], format: [], audience: [], modifier: [], occasion: [], origin: [], mood: [], color: [], subject: [] };
+            let isClassified = false;
+
+            for (const [category, dict] of Object.entries(dictionaries)) {
+                dict.forEach(term => {
+                    // 使用单词边界匹配，避免 "cart" 匹配 "cartoon"
+                    // 简化版：直接 includes，如需精准可用正则
+                    if (lowerKw.includes(term)) {
+                        tags[category].push(term);
+                        isClassified = true;
+                    }
+                });
+            }
+
+            return {
+                keyword,
+                volume,
+                kd,
+                intent,
+                trend,
+                cpc,
+                competitiveDensity,
+                serpFeatures,
+                results,
+                tags,
+                isClassified,
+                isOpportunity: (kd < 15 && volume > 200) // 黄金机会判断逻辑
+            };
+        }).filter(item => item !== null);
+
+        // 初始化未分类数据
+        unclassifiedData = allData.filter(d => !d.isClassified);
+
+        // 渲染界面
+        document.getElementById('statsSection').classList.remove('hidden');
+        document.getElementById('contentGrid').classList.remove('hidden');
+
+        updateStats();
+        renderFilters();
+        analyzeUnclassified();
+        
+        // 默认展示所有
+        currentData = allData;
+        renderTable(currentData);
+    }
+
+    // === 3. 统计与渲染逻辑 ===
+    function updateStats() {
+        document.getElementById('totalKeywords').innerText = allData.length.toLocaleString();
+        document.getElementById('classifiedCount').innerText = allData.filter(d => d.isClassified).length.toLocaleString();
+        document.getElementById('unclassifiedCount').innerText = unclassifiedData.length.toLocaleString();
+        
+        const totalVol = allData.reduce((sum, item) => sum + item.volume, 0);
+        document.getElementById('totalVolume').innerText = formatNumber(totalVol);
+
+        const opps = allData.filter(d => d.isOpportunity).length;
+        document.getElementById('opportunityCount').innerText = opps.toLocaleString();
+    }
+
+    function renderFilters() {
+        // 生成各类别的 Tag 按钮
+        renderTagGroup('styleTags', 'style', 'blue');
+        renderTagGroup('aestheticTags', 'aesthetic', 'fuchsia');
+        renderTagGroup('assetTags', 'asset', 'sky');
+        renderTagGroup('platformTags', 'platform', 'indigo');
+        renderTagGroup('relationTags', 'relation', 'pink');
+        renderTagGroup('questionTags', 'question', 'orange');
+        renderTagGroup('toolTags', 'tool', 'teal');
+        renderTagGroup('actionTags', 'action', 'emerald');
+        renderTagGroup('formatTags', 'format', 'purple');
+        renderTagGroup('audienceTags', 'audience', 'slate');
+        renderTagGroup('modifierTags', 'modifier', 'lime');
+        renderTagGroup('occasionTags', 'occasion', 'yellow');
+        renderTagGroup('originTags', 'origin', 'rose');
+        renderTagGroup('moodTags', 'mood', 'cyan');
+        renderTagGroup('subjectTags', 'subject', 'green');
+        sortCategoryPanels();
+    }
+
+    function renderTagGroup(elementId, category, colorName) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+
+        // 统计该维度下每个标签的出现次数和总流量
+        const counts = {};
+        let totalCount = 0;
+        let totalVolume = 0;
+        allData.forEach(item => {
+            if (item.tags[category].length > 0) {
+                totalCount++;
+                totalVolume += item.volume;
+            }
+            item.tags[category].forEach(tag => {
+                if (!counts[tag]) counts[tag] = { count: 0, volume: 0 };
+                counts[tag].count++;
+                counts[tag].volume += item.volume;
+            });
+        });
+
+        const statEl = document.querySelector(`[data-stat="${category}"]`);
+        if (statEl) {
+            statEl.innerText = `总数 ${totalCount.toLocaleString()} / 总流量 ${formatNumber(totalVolume)}`;
+        }
+        categoryTotals[category] = totalCount;
+        categoryVolumes[category] = totalVolume;
+
+        // 排序：按流量降序
+        const sortedTags = Object.entries(counts).sort((a, b) => b[1].volume - a[1].volume);
+
+        sortedTags.forEach(([tag, stats]) => {
+            const countText = stats.count.toLocaleString();
+            const volumeText = formatNumber(stats.volume);
+            const btn = document.createElement('button');
+            btn.className = `border px-3 py-1 rounded-full text-xs font-medium transition tag-inactive flex items-center gap-2 group`;
+            btn.innerHTML = `
+                <span>${tag}</span>
+                <span class="bg-gray-100 text-gray-500 px-1.5 rounded text-[10px] group-hover:bg-gray-200">数 ${countText}</span>
+                <span class="bg-gray-100 text-gray-500 px-1.5 rounded text-[10px] group-hover:bg-gray-200">流 ${volumeText}</span>
+            `;
+            btn.onclick = () => filterByTag(category, tag, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function sortCategoryPanels() {
+        const container = document.getElementById('filterSection');
+        if (!container) return;
+        const panels = Array.from(container.querySelectorAll('details[data-category]'));
+        panels.sort((a, b) => {
+            const ca = a.dataset.category;
+            const cb = b.dataset.category;
+            const countDiff = (categoryTotals[cb] || 0) - (categoryTotals[ca] || 0);
+            if (countDiff !== 0) return countDiff;
+            return (categoryVolumes[cb] || 0) - (categoryVolumes[ca] || 0);
+        });
+        panels.forEach(panel => container.appendChild(panel));
+    }
+
+    // === 4. 筛选与表格交互 ===
+    function filterByTag(category, tag, btnElement) {
+        // 重置所有按钮样式
+        document.querySelectorAll('button').forEach(b => {
+            if (b.classList.contains('tag-active')) {
+                b.classList.remove('tag-active');
+                b.classList.add('tag-inactive');
+            }
+        });
+
+        // 激活当前按钮
+        if (btnElement) {
+            btnElement.classList.remove('tag-inactive');
+            btnElement.classList.add('tag-active');
+        }
+
+        // 筛选数据
+        currentData = allData.filter(item => item.tags[category].includes(tag));
+        document.getElementById('tableTitle').innerText = `筛选: ${tag} (${currentData.length})`;
+        renderTable(currentData);
+    }
+
+    function applyOpportunityFilter() {
+        currentData = allData.filter(d => d.isOpportunity);
+        document.getElementById('tableTitle').innerText = `🔥 黄金机会 (Low KD, High Vol) - ${currentData.length} 个`;
+
+        // 重置按钮样式
+        document.querySelectorAll('.tag-active').forEach(b => b.classList.replace('tag-active', 'tag-inactive'));
+        renderTable(currentData);
+    }
+
+    function showUnclassified() {
+        currentData = unclassifiedData;
+        document.getElementById('tableTitle').innerText = `⚠️ 未分类数据 (${currentData.length})`;
+        renderTable(currentData);
+    }
+
+    function resetFilters() {
+        currentData = allData;
+        document.getElementById('tableTitle').innerText = "所有关键词";
+        document.querySelectorAll('.tag-active').forEach(b => b.classList.replace('tag-active', 'tag-inactive'));
+        renderTable(currentData);
+    }
+
+    function filterByCategory(category) {
+        currentData = allData.filter(item => (item.tags[category] || []).length > 0);
+        const label = categoryLabels[category] || category;
+        document.getElementById('tableTitle').innerText = `分类: ${label} (${currentData.length})`;
+        document.querySelectorAll('.tag-active').forEach(b => b.classList.replace('tag-active', 'tag-inactive'));
+        renderTable(currentData);
+    }
+
+    function buildTopCategoriesSummary(limit = 3) {
+        const summaries = [];
+
+        Object.keys(dictionaries).forEach(category => {
+            const terms = dictionaries[category] || [];
+            const tagStats = {};
+            let matchedCount = 0;
+            let volume = 0;
+
+            allData.forEach(item => {
+                const tags = item.tags[category] || [];
+                if (tags.length > 0) {
+                    matchedCount++;
+                    volume += item.volume;
+                    tags.forEach(tag => {
+                        if (!tagStats[tag]) tagStats[tag] = { count: 0, volume: 0 };
+                        tagStats[tag].count++;
+                        tagStats[tag].volume += item.volume;
+                    });
+                }
+            });
+
+            summaries.push({
+                category,
+                label: categoryLabels[category] || category,
+                matchedCount,
+                volume,
+                terms
+            });
+        });
+
+        return summaries
+            .sort((a, b) => b.matchedCount - a.matchedCount || b.volume - a.volume)
+            .slice(0, limit);
+    }
+
+    function buildAiPromptText() {
+        const topCategories = buildTopCategoriesSummary(3);
+        const summaryObject = { topCategories };
+        return [
+            '你是关键词分类助手。',
+            '请判断以下未分类关键词是否可以归入下面这些“字典词条匹配到数据最多”的分类（Top 3，重点关注前 2）。若不属于，请提出新的分类建议。',
+            '字典分类（按匹配到数据数量排序 Top 3）：',
+            JSON.stringify(summaryObject, null, 2)
+        ].join('\n');
+    }
+
+    function copyUnclassifiedForAI() {
+        if (!unclassifiedData.length) return;
+        const promptText = buildAiPromptText();
+        const keywords = unclassifiedData.map(item => item.keyword).filter(Boolean);
+        const fullText = `${promptText}\n\n未分类关键词列表（每行一个）：\n${keywords.join('\n')}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullText);
+            return;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = fullText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+    }
+
+    // === 5. 未分类挖掘算法 ===
+    function analyzeUnclassified() {
+        const statsEl = document.getElementById('unclassifiedStats');
+        const list = document.getElementById('unclassifiedSuggestions');
+        const phraseList = document.getElementById('unclassifiedPhrases');
+        const topVolList = document.getElementById('unclassifiedTopVolume');
+        const aiPrompt = document.getElementById('aiPrompt');
+
+        if (!statsEl || !list || !phraseList || !topVolList) return;
+
+        // 统计未分类概览
+        const unclassifiedCount = unclassifiedData.length;
+        const totalCount = allData.length;
+        const unclassifiedVolume = unclassifiedData.reduce((sum, item) => sum + item.volume, 0);
+        const unclassifiedChars = unclassifiedData.reduce((sum, item) => sum + item.keyword.replace(/\s+/g, '').length, 0);
+        const unclassifiedRate = totalCount ? (unclassifiedCount / totalCount) * 100 : 0;
+        const avgVolume = unclassifiedCount ? Math.round(unclassifiedVolume / unclassifiedCount) : 0;
+
+        statsEl.innerHTML = '';
+        [
+            `未分类 ${unclassifiedCount.toLocaleString()} (${unclassifiedRate.toFixed(1)}%)`,
+            `总流量 ${formatNumber(unclassifiedVolume)}`,
+            `平均流量 ${avgVolume.toLocaleString()}`,
+            `字符总数 ${unclassifiedChars.toLocaleString()}`
+        ].forEach(text => {
+            const chip = document.createElement('span');
+            chip.className = 'px-2 py-0.5 rounded bg-red-100 text-red-700';
+            chip.textContent = text;
+            statsEl.appendChild(chip);
+        });
+
+        if (aiPrompt) {
+            aiPrompt.value = buildAiPromptText();
+        }
+
+        // 词频与短语统计
+        const stopwords = new Set([
+            'pfp', 'for', 'the', 'and', 'with', 'pic', 'picture', 'of', 'to', 'in', 'on', 'a', 'an', 'is', 'are', 'by', 'from'
+        ]);
+        const wordStats = {};
+        const phraseStats = {};
+
+        unclassifiedData.forEach(item => {
+            const rawWords = item.keyword.toLowerCase().split(/\s+/).filter(Boolean);
+            const words = rawWords.filter(w => w.length > 2 && !stopwords.has(w));
+
+            words.forEach(w => {
+                if (!wordStats[w]) wordStats[w] = { count: 0, volume: 0, examples: new Set() };
+                wordStats[w].count++;
+                wordStats[w].volume += item.volume;
+                if (wordStats[w].examples.size < 3) wordStats[w].examples.add(item.keyword);
+            });
+
+            for (let i = 0; i < words.length - 1; i++) {
+                const phrase = `${words[i]} ${words[i + 1]}`;
+                if (!phraseStats[phrase]) phraseStats[phrase] = { count: 0, volume: 0, examples: new Set() };
+                phraseStats[phrase].count++;
+                phraseStats[phrase].volume += item.volume;
+                if (phraseStats[phrase].examples.size < 3) phraseStats[phrase].examples.add(item.keyword);
+            }
+        });
+
+        const sortedWords = Object.entries(wordStats)
+            .sort((a, b) => b[1].count - a[1].count || b[1].volume - a[1].volume)
+            .slice(0, 8);
+
+        list.innerHTML = '';
+        sortedWords.forEach(([word, stats]) => {
+            const row = document.createElement('div');
+            row.className = 'flex flex-wrap items-center gap-2';
+
+            const tag = document.createElement('span');
+            tag.className = 'px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold';
+            tag.textContent = word;
+
+            const meta = document.createElement('span');
+            meta.className = 'text-gray-500';
+            meta.textContent = `数 ${stats.count.toLocaleString()} · 流 ${formatNumber(stats.volume)}`;
+
+            const ex = document.createElement('span');
+            ex.className = 'text-gray-400';
+            ex.textContent = `例: ${Array.from(stats.examples).slice(0, 2).join(' | ')}`;
+
+            row.appendChild(tag);
+            row.appendChild(meta);
+            row.appendChild(ex);
+            list.appendChild(row);
+        });
+
+        const sortedPhrases = Object.entries(phraseStats)
+            .sort((a, b) => b[1].count - a[1].count || b[1].volume - a[1].volume)
+            .slice(0, 6);
+
+        phraseList.innerHTML = '';
+        sortedPhrases.forEach(([phrase, stats]) => {
+            const row = document.createElement('div');
+            row.className = 'flex flex-wrap items-center gap-2';
+
+            const tag = document.createElement('span');
+            tag.className = 'px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold';
+            tag.textContent = phrase;
+
+            const meta = document.createElement('span');
+            meta.className = 'text-gray-500';
+            meta.textContent = `数 ${stats.count.toLocaleString()} · 流 ${formatNumber(stats.volume)}`;
+
+            const ex = document.createElement('span');
+            ex.className = 'text-gray-400';
+            ex.textContent = `例: ${Array.from(stats.examples).slice(0, 2).join(' | ')}`;
+
+            row.appendChild(tag);
+            row.appendChild(meta);
+            row.appendChild(ex);
+            phraseList.appendChild(row);
+        });
+
+        const topByVolume = unclassifiedData
+            .slice()
+            .sort((a, b) => b.volume - a.volume)
+            .slice(0, 6);
+
+        topVolList.innerHTML = '';
+        topByVolume.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'flex flex-wrap items-center gap-2';
+
+            const kw = document.createElement('span');
+            kw.className = 'text-gray-700 font-medium';
+            kw.textContent = item.keyword;
+
+            const meta = document.createElement('span');
+            meta.className = 'text-gray-500';
+            meta.textContent = `流 ${item.volume.toLocaleString()} · KD ${item.kd}`;
+
+            row.appendChild(kw);
+            row.appendChild(meta);
+            topVolList.appendChild(row);
+        });
+    }
+
+    // === 6. 渲染表格 ===
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        // 性能优化：只显示前 500 条
+        const displayData = data.slice(0, 500);
+
+        displayData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50 transition';
+
+            // 标签显示逻辑
+            let tagsHtml = '';
+            for (const [cat, list] of Object.entries(row.tags)) {
+                list.forEach(t => {
+                    let color = 'gray';
+                    if (cat === 'style') color = 'blue';
+                    if (cat === 'aesthetic') color = 'fuchsia';
+                    if (cat === 'asset') color = 'sky';
+                    if (cat === 'platform') color = 'indigo';
+                    if (cat === 'relation') color = 'pink';
+                    if (cat === 'question') color = 'orange';
+                    if (cat === 'tool') color = 'teal';
+                    if (cat === 'action') color = 'emerald';
+                    if (cat === 'format') color = 'purple';
+                    if (cat === 'audience') color = 'slate';
+                    if (cat === 'modifier') color = 'lime';
+                    if (cat === 'occasion') color = 'yellow';
+                    if (cat === 'origin') color = 'rose';
+                    if (cat === 'mood') color = 'cyan';
+                    if (cat === 'subject') color = 'green';
+                    if (cat === 'color') color = 'amber';
+                    tagsHtml += `<span class="inline-block bg-${color}-100 text-${color}-800 text-xs px-2 py-0.5 rounded mr-1 mb-1">${t}</span>`;
+                });
+            }
+
+            // 机会高亮
+            const keywordClass = row.isOpportunity ? 'font-bold text-yellow-700' : 'font-medium text-gray-900';
+            const icon = row.isOpportunity ? '🔥 ' : '';
+            const intentBadge = getIntentBadge(row.intent);
+            const trendHtml = renderTrendSparkline(row.trend);
+            const cpcText = formatCurrency(row.cpc);
+            const densityText = formatDecimal(row.competitiveDensity, 2);
+            const resultsText = formatInteger(row.results);
+            const serpHtml = formatSerpFeatures(row.serpFeatures);
+            const kdValue = Number.isFinite(row.kd) ? row.kd : null;
+            const kdText = Number.isFinite(row.kd) ? Math.round(row.kd) : '-';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="flex flex-col gap-1">
+                        <div class="${keywordClass}">${icon}${row.keyword}</div>
+                        ${tagsHtml ? `<div class="flex flex-wrap gap-1">${tagsHtml}</div>` : ''}
+                    </div>
+                </td>
+                <td class="px-6 py-4">${intentBadge}</td>
+                <td class="px-6 py-4 text-right font-mono text-gray-600">${formatInteger(row.volume)}</td>
+                <td class="px-6 py-4">${trendHtml}</td>
+                <td class="px-6 py-4 text-right">
+                    <span class="${getKdColor(kdValue)} px-2 py-1 rounded text-xs font-bold">${kdText}</span>
+                </td>
+                <td class="px-6 py-4 text-right font-mono text-gray-600">${cpcText}</td>
+                <td class="px-6 py-4 text-right font-mono text-gray-600">${densityText}</td>
+                <td class="px-6 py-4">${serpHtml}</td>
+                <td class="px-6 py-4 text-right font-mono text-gray-600">${resultsText}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 辅助函数
+    function parseNumber(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const cleaned = String(value).replace(/,/g, '').replace(/%/g, '').trim();
+        if (!cleaned) return null;
+        const num = Number(cleaned);
+        return Number.isFinite(num) ? num : null;
+    }
+
+    function parseTrend(value) {
+        if (!value) return [];
+        return String(value)
+            .split(',')
+            .map(v => Number(v.trim()))
+            .filter(v => Number.isFinite(v));
+    }
+
+    function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num;
+    }
+
+    function formatInteger(num) {
+        if (!Number.isFinite(num)) return '-';
+        return Math.round(num).toLocaleString();
+    }
+
+    function formatDecimal(num, digits = 2) {
+        if (!Number.isFinite(num)) return '-';
+        return num.toFixed(digits);
+    }
+
+    function formatCurrency(num) {
+        if (!Number.isFinite(num)) return '-';
+        return `$${num.toFixed(2)}`;
+    }
+
+    function renderTrendSparkline(trend) {
+        if (!Array.isArray(trend) || trend.length === 0) {
+            return '<span class="text-gray-400">-</span>';
+        }
+        const max = Math.max(...trend, 0.0001);
+        const bars = trend.map(v => {
+            const height = Math.max(10, Math.round((v / max) * 100));
+            return `<span style="height: ${height}%"></span>`;
+        }).join('');
+        const title = trend.map(v => v.toFixed(2)).join(', ');
+        return `<div class="trend-spark" title="${title}">${bars}</div>`;
+    }
+
+    function formatSerpFeatures(value) {
+        if (!value) return '<span class="text-gray-400">-</span>';
+        const list = String(value).split(',').map(s => s.trim()).filter(Boolean);
+        if (!list.length) return '<span class="text-gray-400">-</span>';
+        const shown = list.slice(0, 3);
+        const chips = shown.map(item => `<span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded mr-1 mb-1">${item}</span>`).join('');
+        const more = list.length > 3 ? `<span class="inline-block bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded mr-1 mb-1">+${list.length - 3}</span>` : '';
+        return `${chips}${more}`;
+    }
+
+    function getIntentBadge(intent) {
+        const text = (intent || '').toString().trim();
+        if (!text) return '<span class="text-gray-400">-</span>';
+        const key = text.toLowerCase();
+        let color = 'gray';
+        if (key.includes('info')) color = 'blue';
+        if (key.includes('navig')) color = 'amber';
+        if (key.includes('comm')) color = 'purple';
+        if (key.includes('trans')) color = 'green';
+        return `<span class="inline-block bg-${color}-100 text-${color}-800 text-xs px-2 py-0.5 rounded">${text}</span>`;
+    }
+
+    function getKdColor(kd) {
+        if (!Number.isFinite(kd)) return 'bg-gray-100 text-gray-500';
+        if (kd < 15) return 'bg-green-100 text-green-800'; // Easy
+        if (kd < 40) return 'bg-yellow-100 text-yellow-800'; // Medium
+        return 'bg-red-100 text-red-800'; // Hard
+    }
+
+    let sortDir = -1;
+    function sortTable(key) {
+        sortDir *= -1;
+        currentData.sort((a, b) => {
+            const av = a[key];
+            const bv = b[key];
+            if (key === 'keyword' || typeof av === 'string' || typeof bv === 'string') {
+                return String(av || '').localeCompare(String(bv || '')) * sortDir;
+            }
+            if (Array.isArray(av) || Array.isArray(bv)) {
+                const as = Array.isArray(av) ? av.reduce((s, v) => s + v, 0) : 0;
+                const bs = Array.isArray(bv) ? bv.reduce((s, v) => s + v, 0) : 0;
+                return (as - bs) * sortDir;
+            }
+            return ((av ?? 0) - (bv ?? 0)) * sortDir;
+        });
+        renderTable(currentData);
+    }
+</script>
+
+</body>
+</html>
