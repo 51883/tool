@@ -141,57 +141,58 @@
     </div>
 </div>
 
-<script>
-    const { pinyin } = pinyinPro;
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.min.js"></script>
+    
+    <script>
+        function convertPinyin() {
+            // 增加安全检查：确保点击按钮时，库已经加载完成
+            if (typeof window.pinyinPro === 'undefined') {
+                alert('拼音转换组件正在加载或加载失败，请稍等几秒再试。如果持续失败，请检查网络是否能访问外网。');
+                return;
+            }
 
-    function convertPinyin() {
-        const input = document.getElementById('inputArea').value;
-        const removeSpace = document.getElementById('removeSpace').checked;
-        
-        if (!input.trim()) {
-            alert('请先输入内容');
-            return;
+            // 将解构赋值移动到函数内部
+            const { pinyin } = window.pinyinPro;
+
+            const input = document.getElementById('inputArea').value;
+            const removeSpace = document.getElementById('removeSpace').checked;
+            
+            if (!input.trim()) {
+                alert('请先输入内容');
+                return;
+            }
+
+            const lines = input.split('\n');
+            const result = lines.map(line => {
+                if (!line.trim()) return '';
+                
+                // 转换为拼音
+                let p = pinyin(line, { toneType: 'none', nonZh: 'consecutive' });
+                
+                if (removeSpace) {
+                    // 去除拼音间的空格，并只保留字母和数字
+                    return p.replace(/\s+/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                }
+                return p.toLowerCase();
+            });
+
+            document.getElementById('outputArea').value = result.join('\n');
         }
 
-        const lines = input.split('\n');
-        const result = lines.map(line => {
-            if (!line.trim()) return '';
+        function copyResult() {
+            const output = document.getElementById('outputArea');
+            if (!output.value) return;
             
-            // 转换为拼音
-            // toneType: 'none' (无声调)
-            // type: 'array' (转为数组方便处理)
-            let p = pinyin(line, { toneType: 'none', nonZh: 'consecutive' });
-            
-            if (removeSpace) {
-                // 去除拼音间的空格，并只保留字母和数字
-                return p.replace(/\s+/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            }
-            return p.toLowerCase();
-        });
+            output.select();
+            document.execCommand('copy');
+            alert('结果已复制到剪贴板');
+        }
 
-        document.getElementById('outputArea').value = result.join('\n');
-    }
-
-    function copyResult() {
-        const output = document.getElementById('outputArea');
-        if (!output.value) return;
-        
-        output.select();
-        document.execCommand('copy');
-        alert('结果已复制到剪贴板');
-    }
-
-    function clearAll() {
-        document.getElementById('inputArea').value = '';
-        document.getElementById('outputArea').value = '';
-    }
-
-    // 监听输入实时转换 (可选)
-    document.getElementById('inputArea').addEventListener('input', () => {
-        // 如果想实时转换可以取消下面注释
-        // convertPinyin();
-    });
-</script>
+        function clearAll() {
+            document.getElementById('inputArea').value = '';
+            document.getElementById('outputArea').value = '';
+        }
+    </script>
 
 </body>
 </html>
