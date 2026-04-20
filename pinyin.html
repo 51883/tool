@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中文转拼音 - 域名助手</title>
-    <script src="https://unpkg.com/pinyin-pro"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.min.js"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -119,10 +119,7 @@
     <div class="grid">
         <div>
             <label>输入中文关键词 (每行一个):</label>
-            <textarea id="inputArea" placeholder="例如：
-百度
-阿里云
-腾讯云"></textarea>
+            <textarea id="inputArea" placeholder="例如：&#10;百度&#10;阿里云&#10;腾讯云"></textarea>
         </div>
         <div>
             <label>转换结果 (拼音):</label>
@@ -141,58 +138,56 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.min.js"></script>
-    
-    <script>
-        function convertPinyin() {
-            // 增加安全检查：确保点击按钮时，库已经加载完成
-            if (typeof window.pinyinPro === 'undefined') {
-                alert('拼音转换组件正在加载或加载失败，请稍等几秒再试。如果持续失败，请检查网络是否能访问外网。');
-                return;
-            }
+<script>
+    function convertPinyin() {
+        // 增加安全检查：确保点击按钮时，库已经加载完成
+        if (typeof window.pinyinPro === 'undefined') {
+            alert('拼音转换组件正在加载或加载失败，请稍等几秒再试。如果持续失败，请检查网络是否能访问外网。');
+            return;
+        }
 
-            // 将解构赋值移动到函数内部
-            const { pinyin } = window.pinyinPro;
+        // 将解构赋值移动到函数内部
+        const { pinyin } = window.pinyinPro;
 
-            const input = document.getElementById('inputArea').value;
-            const removeSpace = document.getElementById('removeSpace').checked;
+        const input = document.getElementById('inputArea').value;
+        const removeSpace = document.getElementById('removeSpace').checked;
+        
+        if (!input.trim()) {
+            alert('请先输入内容');
+            return;
+        }
+
+        const lines = input.split('\n');
+        const result = lines.map(line => {
+            if (!line.trim()) return '';
             
-            if (!input.trim()) {
-                alert('请先输入内容');
-                return;
-            }
-
-            const lines = input.split('\n');
-            const result = lines.map(line => {
-                if (!line.trim()) return '';
-                
-                // 转换为拼音
-                let p = pinyin(line, { toneType: 'none', nonZh: 'consecutive' });
-                
-                if (removeSpace) {
-                    // 去除拼音间的空格，并只保留字母和数字
-                    return p.replace(/\s+/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                }
-                return p.toLowerCase();
-            });
-
-            document.getElementById('outputArea').value = result.join('\n');
-        }
-
-        function copyResult() {
-            const output = document.getElementById('outputArea');
-            if (!output.value) return;
+            // 转换为拼音
+            let p = pinyin(line, { toneType: 'none', nonZh: 'consecutive' });
             
-            output.select();
-            document.execCommand('copy');
-            alert('结果已复制到剪贴板');
-        }
+            if (removeSpace) {
+                // 去除拼音间的空格，并只保留字母和数字
+                return p.replace(/\s+/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            }
+            return p.toLowerCase();
+        });
 
-        function clearAll() {
-            document.getElementById('inputArea').value = '';
-            document.getElementById('outputArea').value = '';
-        }
-    </script>
+        document.getElementById('outputArea').value = result.join('\n');
+    }
+
+    function copyResult() {
+        const output = document.getElementById('outputArea');
+        if (!output.value) return;
+        
+        output.select();
+        document.execCommand('copy');
+        alert('结果已复制到剪贴板');
+    }
+
+    function clearAll() {
+        document.getElementById('inputArea').value = '';
+        document.getElementById('outputArea').value = '';
+    }
+</script>
 
 </body>
 </html>
