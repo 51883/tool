@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中文转拼音 - 域名助手</title>
-    <script src="https://unpkg.com/pinyin-pro/dist/index.min.js"></script>
+    
+    <script src="https://unpkg.com/pinyin-pro/dist/index.js" onerror="loadFallback()"></script>
+    
+    <script>
+        function loadFallback() {
+            console.warn('主 CDN 加载失败，正在切换备用 CDN...');
+            var script = document.createElement('script');
+            script.src = 'https://npm.elemecdn.com/pinyin-pro/dist/index.js';
+            document.head.appendChild(script);
+        }
+    </script>
+
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -140,9 +151,8 @@
 
 <script>
     function convertPinyin() {
-        // 增加安全检查：确保 iframe 环境中库已成功挂载
         if (typeof window.pinyinPro === 'undefined') {
-            alert('拼音组件正在加载或网络受限，请稍等或检查网络。\n尝试刷新页面重试。');
+            alert('拼音组件还在加载中，请再等一两秒后重试。');
             return;
         }
 
@@ -170,24 +180,21 @@
         document.getElementById('outputArea').value = result.join('\n');
     }
 
-    // 优化 2：兼容 Iframe 环境的剪贴板复制方案
     async function copyResult() {
         const output = document.getElementById('outputArea');
         const textToCopy = output.value;
         if (!textToCopy) return;
 
         try {
-            // 优先使用现代 Clipboard API
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(textToCopy);
                 alert('结果已复制到剪贴板');
             } else {
-                // 退化方案：传统 execCommand
                 throw new Error('Fallback');
             }
         } catch (err) {
             output.select();
-            output.setSelectionRange(0, 99999); // 兼容移动端
+            output.setSelectionRange(0, 99999);
             try {
                 document.execCommand('copy');
                 alert('结果已复制到剪贴板');
