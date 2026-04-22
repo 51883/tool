@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中文转拼音 - 域名助手</title>
-    <script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.min.js"></script>
+    <script src="https://unpkg.com/pinyin-pro/dist/index.min.js"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -140,15 +140,13 @@
 
 <script>
     function convertPinyin() {
-        // 增加安全检查：确保点击按钮时，库已经加载完成
+        // 增加安全检查：确保 iframe 环境中库已成功挂载
         if (typeof window.pinyinPro === 'undefined') {
-            alert('拼音转换组件正在加载或加载失败，请稍等几秒再试。如果持续失败，请检查网络是否能访问外网。');
+            alert('拼音组件正在加载或网络受限，请稍等或检查网络。\n尝试刷新页面重试。');
             return;
         }
 
-        // 将解构赋值移动到函数内部
         const { pinyin } = window.pinyinPro;
-
         const input = document.getElementById('inputArea').value;
         const removeSpace = document.getElementById('removeSpace').checked;
         
@@ -161,11 +159,9 @@
         const result = lines.map(line => {
             if (!line.trim()) return '';
             
-            // 转换为拼音
             let p = pinyin(line, { toneType: 'none', nonZh: 'consecutive' });
             
             if (removeSpace) {
-                // 去除拼音间的空格，并只保留字母和数字
                 return p.replace(/\s+/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
             }
             return p.toLowerCase();
@@ -174,13 +170,31 @@
         document.getElementById('outputArea').value = result.join('\n');
     }
 
-    function copyResult() {
+    // 优化 2：兼容 Iframe 环境的剪贴板复制方案
+    async function copyResult() {
         const output = document.getElementById('outputArea');
-        if (!output.value) return;
-        
-        output.select();
-        document.execCommand('copy');
-        alert('结果已复制到剪贴板');
+        const textToCopy = output.value;
+        if (!textToCopy) return;
+
+        try {
+            // 优先使用现代 Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(textToCopy);
+                alert('结果已复制到剪贴板');
+            } else {
+                // 退化方案：传统 execCommand
+                throw new Error('Fallback');
+            }
+        } catch (err) {
+            output.select();
+            output.setSelectionRange(0, 99999); // 兼容移动端
+            try {
+                document.execCommand('copy');
+                alert('结果已复制到剪贴板');
+            } catch (copyErr) {
+                alert('由于 iframe 安全限制，自动复制失败，请手动全选复制。');
+            }
+        }
     }
 
     function clearAll() {
