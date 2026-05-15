@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Filter and Copy</title>
+    <!-- 引入 Tailwind CSS 以还原 UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义行号编辑器样式 */
+        .editor-wrapper {
+            display: inline-flex;
+            gap: 10px;
+            font-family: monospace;
+            line-height: 21px;
+            background: #282a3a;
+            border-radius: 6px;
+            padding: 20px 10px;
+            height: 300px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        }
+        .line-numbers {
+            width: 30px;
+            text-align: right;
+            color: #506882;
+            overflow: hidden;
+            user-select: none;
+            padding-right: 5px;
+        }
+        .line-numbers div {
+            height: 21px;
+        }
+        .editor-textarea {
+            line-height: 21px;
+            padding: 0;
+            border: 0;
+            background: #282a3a;
+            color: #FFF;
+            flex-grow: 1;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+            white-space: pre;
+        }
+        /* 自定义 Toast 动画 */
+        .toast {
+            transition: opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* 美化基础控件 */
+        input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            accent-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 min-h-screen p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <h1 class="text-3xl font-bold text-center">
+            Keyword Filter and Copy
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 左侧：输入与配置 -->
+            <div class="space-y-6">
+                <div class="space-y-1">
+                    <textarea 
+                        id="inputKeywords" 
+                        class="w-full h-72 p-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900" 
+                        placeholder="Enter keywords, one per line"></textarea>
+                    <p class="text-sm text-slate-500 text-right" id="inputLineCount">Lines: 0</p>
+                </div>
+
+                <div class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div class="flex items-center justify-between space-x-2">
+                        <label for="spaceCountMode" class="font-medium text-sm">Space count mode:</label>
+                        <select id="spaceCountMode" class="border border-slate-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white">
+                            <option value="eq">Exactly</option>
+                            <option value="gte">At least</option>
+                            <option value="lte">At most</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between space-x-2">
+                        <label for="spaceCount" class="font-medium text-sm">Number of spaces:</label>
+                        <input type="number" id="spaceCount" min="0" value="0" class="border border-slate-300 rounded px-3 py-1.5 w-24 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    </div>
+
+                    <hr class="border-slate-200">
+
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="filterNumbers">
+                        <label for="filterNumbers" class="text-sm font-medium cursor-pointer">Filter out numbers</label>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="removeSpecialChars">
+                        <label for="removeSpecialChars" class="text-sm font-medium cursor-pointer">Remove special characters</label>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="removeSpaces" disabled>
+                        <label id="removeSpacesLabel" for="removeSpaces" class="text-sm font-medium text-slate-400 cursor-pointer">Also remove spaces</label>
+                    </div>
+                </div>
+
+                <button id="filterBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-md transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed">
+                    Filter
+                </button>
+            </div>
+
+            <!-- 右侧：输出与结果 -->
+            <div class="space-y-6">
+                <div class="space-y-1">
+                    <div class="editor-wrapper">
+                        <div class="line-numbers" id="lineNumbers"></div>
+                        <textarea id="outputKeywords" class="editor-textarea" spellcheck="false"></textarea>
+                    </div>
+                    <p class="text-sm text-slate-500 text-right" id="outputLineCount">Lines: 0</p>
+                </div>
+
+                <div class="space-y-2 pt-[1.1rem]">
+                    <button id="copyBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 font-medium py-2.5 rounded-md transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed" disabled>
+                        Copy Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast" class="toast fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-3 rounded-md shadow-lg flex items-center z-50">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // DOM 元素引用
+        const inputKeywords = document.getElementById('inputKeywords');
+        const inputLineCount = document.getElementById('inputLineCount');
+        const spaceCountMode = document.getElementById('spaceCountMode');
+        const spaceCount = document.getElementById('spaceCount');
+        const filterNumbers = document.getElementById('filterNumbers');
+        const removeSpecialChars = document.getElementById('removeSpecialChars');
+        const removeSpaces = document.getElementById('removeSpaces');
+        const removeSpacesLabel = document.getElementById('removeSpacesLabel');
+        const filterBtn = document.getElementById('filterBtn');
+        
+        const outputKeywords = document.getElementById('outputKeywords');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const outputLineCount = document.getElementById('outputLineCount');
+        const copyBtn = document.getElementById('copyBtn');
+        const toastEl = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // 更新输入行数
+        inputKeywords.addEventListener('input', () => {
+            const count = inputKeywords.value.split('\n').length;
+            inputLineCount.innerText = `Lines: ${count}`;
+        });
+
+        // 联动 Checkbox (移除特殊字符 -> 移除空格)
+        removeSpecialChars.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            removeSpaces.disabled = !isChecked;
+            if (!isChecked) {
+                removeSpaces.checked = false;
+                removeSpacesLabel.classList.add('text-slate-400');
+            } else {
+                removeSpacesLabel.classList.remove('text-slate-400');
+            }
+        });
+
+        // 更新输出区域的行号和结果行数统计
+        function updateOutputState() {
+            const val = outputKeywords.value;
+            const linesArray = val.split('\n');
+            const totalLines = linesArray.length;
+            
+            // 生成行号 DOM
+            let lineNumbersHtml = '';
+            for (let i = 1; i <= totalLines; i++) {
+                lineNumbersHtml += `<div>${i}</div>`;
+            }
+            lineNumbers.innerHTML = lineNumbersHtml;
+
+            // 统计非空行
+            const validCount = linesArray.filter(line => line.trim().length > 0).length;
+            outputLineCount.innerText = `Lines: ${validCount}`;
+
+            // 控制复制按钮状态
+            copyBtn.disabled = val.length === 0;
+        }
+
+        // 同步滚动 (文本域滚动时，行号跟着滚动)
+        outputKeywords.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = outputKeywords.scrollTop;
+        });
+
+        // 输出区域支持 Tab 键缩进及手动修改后的状态同步
+        outputKeywords.addEventListener('input', updateOutputState);
+        outputKeywords.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                const value = e.target.value;
+                e.target.value = value.substring(0, start) + '\t' + value.substring(end);
+                e.target.selectionStart = e.target.selectionEnd = start + 1;
+                updateOutputState();
+            }
+        });
+
+        // Toast 提示逻辑
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            toastMessage.innerText = message;
+            if (type === 'error') {
+                toastEl.classList.replace('bg-slate-900', 'bg-red-600');
+            } else {
+                toastEl.classList.replace('bg-red-600', 'bg-slate-900');
+            }
+            
+            toastEl.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // 核心：过滤逻辑（使用 Promise + setTimeout 实现分片处理防卡顿）
+        filterBtn.addEventListener('click', async () => {
+            const keywordsText = inputKeywords.value;
+            const mode = spaceCountMode.value;
+            const targetSpaces = parseInt(spaceCount.value, 10) || 0;
+            const filterNums = filterNumbers.checked;
+            const rmSpecial = removeSpecialChars.checked;
+            const rmSpaces = removeSpaces.checked;
+
+            if (!keywordsText.trim()) {
+                showToast('Please enter some keywords first.', 'error');
+                return;
+            }
+
+            filterBtn.disabled = true;
+            outputKeywords.value = '';
+            updateOutputState();
+
+            const keywordList = keywordsText.split('\n');
+            const totalItems = keywordList.length;
+            const batchSize = 1000;
+            const totalBatches = Math.ceil(totalItems / batchSize);
+            const filteredResults = new Set();
+
+            const processBatch = (batchIndex) => {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const start = batchIndex * batchSize;
+                        const end = Math.min(start + batchSize, totalItems);
+                        const batch = keywordList.slice(start, end);
+
+                        batch.forEach(keyword => {
+                            let processedKeyword = keyword.trim();
+                            if (processedKeyword.length === 0) return;
+
+                            // 计算空格数量
+                            const spaces = processedKeyword.split(' ').length - 1;
+                            let pass = false;
+                            if (mode === 'eq') pass = spaces === targetSpaces;
+                            else if (mode === 'gte') pass = spaces >= targetSpaces;
+                            else if (mode === 'lte') pass = spaces <= targetSpaces;
+
+                            if (!pass) return;
+
+                            // 处理特殊字符
+                            if (rmSpecial) {
+                                if (rmSpaces) {
+                                    processedKeyword = processedKeyword.replace(/[^a-zA-Z0-9]/g, '');
+                                } else {
+                                    processedKeyword = processedKeyword.replace(/[^a-zA-Z0-9\s]/g, '');
+                                }
+                                if (processedKeyword.trim().length === 0) return;
+                            }
+
+                            // 过滤数字
+                            if (filterNums && /\d/.test(processedKeyword)) {
+                                return;
+                            }
+
+                            filteredResults.add(processedKeyword);
+                        });
+
+                        const progress = Math.round(((batchIndex + 1) / totalBatches) * 100);
+                        filterBtn.innerText = `Filtering... ${progress}%`;
+                        resolve();
+                    }, 0);
+                });
+            };
+
+            // 串行执行所有批次
+            for (let i = 0; i < totalBatches; i++) {
+                await processBatch(i);
+                // 偶尔更新一下 UI 进度
+                if (i % 3 === 0 || i === totalBatches - 1) {
+                    outputKeywords.value = Array.from(filteredResults).join('\n');
+                    updateOutputState();
+                }
+            }
+
+            // 完成处理
+            outputKeywords.value = Array.from(filteredResults).join('\n');
+            updateOutputState();
+            
+            filterBtn.innerText = 'Filter';
+            filterBtn.disabled = false;
+            showToast('Filtering complete!');
+        });
+
+        // 复制逻辑
+        copyBtn.addEventListener('click', async () => {
+            const textToCopy = outputKeywords.value;
+            if (!textToCopy) return;
+
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                showToast('Results copied to clipboard!');
+            } catch (err) {
+                // 回退方案 (Fallback for old browsers or large text)
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Results copied to clipboard!');
+                } catch (e) {
+                    showToast('Failed to copy content. The data might be too large.', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        });
+
+        // 初始化
+        updateOutputState();
+    </script>
+</body>
+</html>
